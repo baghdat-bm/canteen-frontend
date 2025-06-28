@@ -1,0 +1,12 @@
+{
+  "canteen_name": "Столовая “Ас-Мазири”",
+  "login_title": "Авторизация",
+  "login_field": "Логин",
+  "password_field": "Пароль",
+  "login_button": "Войти",
+  "welcome": "Добро пожаловать",
+  "main_page": "Главная",
+  "menu": "Меню",
+  "reports": "Отчеты",
+  "logout": "Выйти"
+}
