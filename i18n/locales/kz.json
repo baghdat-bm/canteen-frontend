@@ -8,5 +8,21 @@
   "main_page": "Басты бет",
   "menu": "Мәзір",
   "reports": "Есептер",
-  "logout": "Шығу"
+  "logout": "Шығу",
+  "contractors": "Контрагенттер",
+  "create_new": "Жаңасын енгізу",
+  "edit": "Өзгерту",
+  "name": "Атауы",
+  "loading": "Деректерді жүктелуде...",
+  "actions": {
+    "save": "Сақтау",
+    "saving": "Сақталуда..."
+  },
+  "refs": {
+    "not_found_or_loading": "табылмады немесе жүктелуде...",
+    "check_account": "Банктік шот",
+    "corr_account": "Кор.шот",
+    "bik": "БСК",
+    "edit_contractor": "Контрагентті өңдеу"
+  }
 }

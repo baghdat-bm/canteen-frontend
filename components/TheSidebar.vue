@@ -5,9 +5,9 @@
       <span v-if="uiStore.isSidebarOpen" class="mx-4">{{ $t('main_page') }}</span>
     </NuxtLink>
 
-    <NuxtLink :to="localePath('/menu')" class="flex items-center px-6 py-3 mt-2 hover:bg-gray-700">
+    <NuxtLink :to="localePath('/contractors')" class="flex items-center px-6 py-3 mt-2 hover:bg-gray-700">
       <BookOpenText class="w-6 h-6" />
-      <span v-if="uiStore.isSidebarOpen" class="mx-4">{{ $t('menu') }}</span>
+      <span v-if="uiStore.isSidebarOpen" class="mx-4">{{ $t('contractors') }}</span>
     </NuxtLink>
     
     <NuxtLink :to="localePath('/reports')" class="flex items-center px-6 py-3 mt-2 hover:bg-gray-700">
