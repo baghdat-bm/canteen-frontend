@@ -1,5 +1,5 @@
 {
-  "canteen_name": "“Ас-Мәзірі” Асханасы",
+  "canteen_name": "Асхана",
   "login_title": "Кіру",
   "login_field": "Логин",
   "password_field": "Құпиясөз",
@@ -19,6 +19,7 @@
     "saving": "Сақталуда..."
   },
   "refs": {
+    "refs_name": "Анықтамалықтар",
     "not_found_or_loading": "табылмады немесе жүктелуде...",
     "check_account": "Банктік шот",
     "corr_account": "Кор.шот",

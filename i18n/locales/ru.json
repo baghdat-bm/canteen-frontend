@@ -1,5 +1,5 @@
 {
-  "canteen_name": "Столовая “Ас-Мазири”",
+  "canteen_name": "Столовая",
   "login_title": "Авторизация",
   "login_field": "Логин",
   "password_field": "Пароль",
@@ -19,6 +19,7 @@
     "saving": "Сохранение..."
   },
   "refs": {
+    "refs_name": "Справочники",
     "not_found_or_loading": "не найден или загружается...",
     "check_account": "Банковский счет",
     "corr_account": "Кор.счет",
