@@ -5,7 +5,6 @@ export async function apiClient<T>(url: string, options: FetchOptions = {}) {
     const config = useRuntimeConfig();
     const authStore = useAuthStore();
 
-    // Создаем кастомные опции, чтобы не изменять оригинальный объект
     const customOptions: FetchOptions = {
         ...options,
         baseURL: config.public.apiBase,
@@ -14,24 +13,23 @@ export async function apiClient<T>(url: string, options: FetchOptions = {}) {
         },
     };
 
-    // 1. Просто добавляем токен, если он есть
     if (authStore.accessToken) {
         customOptions.headers!['Authorization'] = `Bearer ${authStore.accessToken}`;
     }
 
     try {
-        // 2. Выполняем обычный, понятный $fetch
         return await $fetch<T>(url, customOptions);
     } catch (error: any) {
-        // 3. Если поймали ошибку 401, пытаемся ОДИН раз обновить токен
-        if (error.response?.status === 401 && authStore.refreshToken) {
-            console.log('Поймали 401. Пытаемся обновить токен...');
+        // --- ↓↓↓ ИЗМЕНЕНИЕ ТОЛЬКО В ЭТОЙ СТРОКЕ ↓↓↓ ---
+        // Теперь мы проверяем, является ли ошибка 401 ИЛИ 403
+        if (error.response?.status === 401 || error.response?.status === 403) {
+            console.log(`Поймали ошибку ${error.response.status}. Пытаемся обновить токен...`);
             
             const refreshed = await authStore.refreshAccessToken();
             
             if (refreshed) {
-                console.log('Токен обновлен. Повторяем запрос...');
-                // Обновляем заголовок с НОВЫМ токеном
+                console.log('Токен обновлен. Повторяем оригинальный запрос...');
+                // Обновляем заголовок с НОВЫМ токеном в наших кастомных опциях
                 customOptions.headers!['Authorization'] = `Bearer ${authStore.accessToken}`;
                 
                 // И просто повторяем тот же самый запрос еще раз
