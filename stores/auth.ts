@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useApiFetch } from '~/composables/useApiFetch'
+import { apiClient } from '~/utils/apiClient'; 
+import { useLocalePath } from '#i18n' 
 
 // Интерфейсы оставляем без изменений
 interface TokenResponse {
@@ -11,41 +12,60 @@ interface RefreshResponse {
     access: string;
 }
 interface UserProfile {
-    username: string;
-    full_name: string;
-    canteen: {
-        name: string;
-    }
+    user_id: number;
+    profile_id: number;
+    login: string;
+    user_name: string;
+    user_phone: string;
+    school_id: number;
+    school_bin: number;
+    school_name_kz: string;
+    school_name_ru: string;
+    warehouse_id: number;
+    warehouse_name: string;
 }
 
 export const useAuthStore = defineStore('auth', () => {
-    // 1. Вызываем только те composable-функции, которые безопасно вызывать при инициализации.
-    // useRuntimeConfig и useRouter, как правило, безопасны.
+
     const config = useRuntimeConfig();
     const router = useRouter();
 
-    // УБИРАЕМ: const { locale } = useI18n(); - ЭТА СТРОКА ВЫЗЫВАЛА ОШИБКУ НА СЕРВЕРЕ
-
-    // State
-    const user = ref<{ name: string; login: string } | null>(null);
+    // State    
     const accessToken = ref<string | null>(null);
     const refreshToken = ref<string | null>(null);
-    const canteenName = ref<string>('Асхана');
+    const userProfile = ref<UserProfile | null>(null);
+
+
+    const { locale } = useNuxtApp().$i18n;
+    const localePath = useLocalePath();
 
     // Getters
-    const isAuthenticated = computed(() => !!accessToken.value && !!user.value);
-    const getUserName = computed(() => user.value?.name || 'Пайдаланушы');
+    const isAuthenticated = computed(() => !!accessToken.value && !!userProfile.value);
+    const getUserName = computed(() => userProfile.value?.user_name || 'Пайдаланушы');
+    const warehouseName = computed(() => {
+        // Если профиль еще не загружен, показываем значение по умолчанию
+        if (!userProfile.value) {
+            return ''; 
+        }
+        // В зависимости от локали возвращаем нужное поле
+        return ' - ' + userProfile.value.warehouse_name;
+    });
+    const schoolName = computed(() => {
+        // Если профиль еще не загружен, показываем значение по умолчанию
+        if (!userProfile.value) {
+            return locale.value === 'kz' ? 'Мектеп' : 'Школа'; 
+        }
+        // В зависимости от локали возвращаем нужное поле
+        return locale.value === 'kz'
+            ? userProfile.value.school_name_kz
+            : userProfile.value.school_name_ru;
+    });
 
     // Actions
     async function login(credentials: { login: string; password: string }) {
 
-        console.log('Данные, полученные для отправки:', credentials);
-
-        // ПОЛУЧАЕМ ЛОКАЛЬ ЗДЕСЬ: Это безопасный способ для actions, работает и на сервере, и на клиенте.
-        const { locale } = useNuxtApp().$i18n;
-
         try {
-            const tokens = await $fetch<TokenResponse>(`/${locale.value}/school-api/token/`, {
+            const tokens = await $fetch<TokenResponse>(`/token/`, {
                 baseURL: config.public.apiBase,
                 method: 'POST',
                 body: {
@@ -55,8 +75,8 @@ export const useAuthStore = defineStore('auth', () => {
             });
 
             setTokens(tokens.access, tokens.refresh);
-            await fetchUser();
-            await router.push('/');
+            await fetchUser(credentials.login);
+            await router.push(localePath('/'));
 
         } catch (error: any) {
             console.error('Ошибка входа:', error.data);
@@ -64,19 +84,15 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function fetchUser() {
+    async function fetchUser(login: string) {
         try {
-            const response = await useApiFetch<UserProfile>('/school-api/users/me/');
+            const profile = await apiClient<UserProfile>('/user-data/');
+            
+            profile.login = login;
 
-            if (!response.data.value) {
-                throw new Error('Не удалось получить данные пользователя');
-            }
-            const userProfile = response.data.value;
-            user.value = {
-                name: userProfile.full_name,
-                login: userProfile.username,
-            };
-            canteenName.value = userProfile.canteen.name;
+            // Вместо заполнения нескольких ref, мы просто сохраняем весь объект
+            userProfile.value = profile;
+
         } catch (error) {
             console.error('Ошибка при получении данных пользователя:', error);
             await logout();
@@ -85,13 +101,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function refreshAccessToken() {
-        // ПОЛУЧАЕМ ЛОКАЛЬ ЗДЕСЬ: Это безопасный способ для actions
-        const { locale } = useNuxtApp().$i18n;
-
+        
         if (!refreshToken.value) return false;
         try {
             console.log('Обновление токена...');
-            const response = await $fetch<RefreshResponse>(`/${locale.value}/school-api/token/refresh/`, {
+            const response = await $fetch<RefreshResponse>(`/token/refresh/`, {
                 baseURL: config.public.apiBase,
                 method: 'POST',
                 body: {
@@ -114,18 +128,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function logout() {
-        user.value = null;
+        userProfile.value = null; // <-- Очищаем профиль
         accessToken.value = null;
         refreshToken.value = null;
-        canteenName.value = 'Асхана';
-        await router.push('/login');
+        await router.push(localePath('/login'));
     }
 
     return {
-        user,
+        userProfile,
         accessToken,
         refreshToken,
-        canteenName,
+        schoolName,
+        warehouseName,
         isAuthenticated,
         getUserName,
         login,

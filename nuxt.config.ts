@@ -13,6 +13,7 @@ export default defineNuxtConfig({
   },
 
   i18n: {
+    strategy: 'prefix_except_default',
     locales: [
       {
         code: 'kz',
@@ -30,8 +31,22 @@ export default defineNuxtConfig({
     lazy: true,
     langDir: 'locales',
     defaultLocale: 'kz', // Язык по умолчанию - казахский
-    strategy: 'no_prefix', // Не добавлять префикс языка в URL для языка по умолчанию
-    vueI18n: './i18n.config.ts' // Путь к файлу конфигурации i18n
+    
+    vueI18n: './i18n.config.ts', // Путь к файлу конфигурации i18n
+    detectBrowserLanguage: {
+      useCookie: true,              // Оставляем включенным
+      cookieKey: 'app_locale',      // Используем то же имя cookie
+      
+      // ВАЖНО: Мы отключаем "агрессивный" редирект.
+      // Теперь Nuxt не будет пытаться перенаправить вас при каждом удобном случае.
+      // Он будет доверять cookie и префиксу в URL.
+      alwaysRedirect: false,
+      
+      // Перенаправлять, только если пользователь зашел на страницу без языкового префикса.
+      // Например, если он зайдет на my-site.com/ (вместо my-site.com/kz),
+      // то Nuxt посмотрит в cookie и перенаправит на my-site.com/kz/.
+      redirectOn: 'no prefix',  
+    }
   },
 
   // Добавим алиас для удобного импорта
@@ -42,7 +57,7 @@ export default defineNuxtConfig({
   // настройки приложения
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:8000', // URL бэкенда
+      apiBase: 'http://localhost:8000/ru/school-api', // URL бэкенда
     }
   },
 })
