@@ -30,17 +30,21 @@
   },
   "messages": {
     "couldntUploadEditingData": "Не удалось загрузить данные для редактирования",
-    "couldntUpdateCounterparty": "Не удалось обновить контрагента"
+    "couldntUpdateCounterparty": "Не удалось обновить контрагента",
+    "couldntCreateCounterparty": "Не удалось создать контрагента",
+    "couldntCreateMeasurementUnit": "Не удалось создать единицу измерения"
   },
   "refs": {
     "refs_name": "Справочники",
     "measurement_unit": "Единица измерения",
     "measurement_units": "Единицы измерений",
     "editMeasurementUnit": "Изменение единицы измерения",
+    "createMeasurementUnit": "Создать единицу измерения",
     "not_found_or_loading": "не найден или загружается...",
     "check_account": "Банковский счет",
     "corr_account": "Кор.счет",
     "bik": "БИК",
-    "edit_contractor": "Редактирование контрагента"
+    "edit_contractor": "Редактирование контрагента",
+    "createContractor": "Создание контрагента"
   }
 }

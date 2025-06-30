@@ -30,17 +30,21 @@
   },
   "messages": {
     "couldntUploadEditingData": "Өңдеу үшін деректерді жүктеу мүмкін болмады",
-    "couldntUpdateCounterparty": "Контрагентті жаңарту мүмкін болмады"
+    "couldntUpdateCounterparty": "Контрагентті жаңарту мүмкін болмады",
+    "couldntCreateCounterparty": "Жаңа контрагент енгізу мүмкін болмады",
+    "couldntCreateMeasurementUnit": "Жаңа өлшем бірлігін енгізу мүмкін болмады"
   },
   "refs": {
     "refs_name": "Анықтамалықтар",
     "measurement_unit": "Өлшем бірлік",
     "measurement_units": "Өлшем бірліктер",
     "editMeasurementUnit": "Өлшем бірлікті өңдеу",
+    "createMeasurementUnit": "Жаңа өлшем бірлігін енгізу",
     "not_found_or_loading": "табылмады немесе жүктелуде...",
     "check_account": "Банктік шот",
     "corr_account": "Кор.шот",
     "bik": "БСК",
-    "edit_contractor": "Контрагентті өңдеу"
+    "edit_contractor": "Контрагентті өңдеу",
+    "createContractor": "Жаңа контрагент енгізу"
   }
 }

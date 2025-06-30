@@ -53,12 +53,10 @@ const handleSubmit = async (formData: MeasurementUnitPayload) => {
 
   isSubmitting.value = true;
   try {
-    await store.updateMeasurementUnit(id, formData);
-    // После успешного обновления переходим на страницу списка
+    await store.updateMeasurementUnit(id, formData);    
     await navigateTo(localePath('/measurement-units'));
   } catch (error) {
-    console.error('Failed to update measurement unit:', error);
-    // В реальном приложении здесь лучше показать уведомление пользователю
+    console.error('Failed to update measurement unit:', error);    
     alert(t('message.couldntUpdateMeasurementUnit'));
   } finally {
     isSubmitting.value = false;

@@ -11,7 +11,7 @@
 
     <!-- Индикатор загрузки -->
     <div v-if="pending" class="text-center">
-      <p>{{ $t('message.loading') }}</p>
+      <p>{{ $t('loading') }}</p>
     </div>
 
     <!-- Сообщение, если нет данных -->

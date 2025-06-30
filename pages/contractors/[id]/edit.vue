@@ -5,7 +5,7 @@
       
       <!-- Индикатор загрузки -->
       <div v-if="pending" class="text-center">
-        <p>{{ $t('message.loading') }}</p>
+        <p>{{ $t('loading') }}</p>
       </div>
       
       <!-- Форма в белой карточке -->
