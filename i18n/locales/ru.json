@@ -20,6 +20,7 @@
   },
   "refs": {
     "refs_name": "Справочники",
+    "measurement_units": "Единицы измерения",
     "not_found_or_loading": "не найден или загружается...",
     "check_account": "Банковский счет",
     "corr_account": "Кор.счет",

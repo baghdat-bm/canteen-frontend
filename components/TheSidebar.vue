@@ -40,6 +40,17 @@
             <span class="mx-4">{{ $t('contractors') }}</span>
           </NuxtLink>
         </div>
+        <div v-if="isDirectoriesOpen && uiStore.isSidebarOpen" class="bg-gray-900 py-2">
+           <NuxtLink 
+            :to="localePath('/measurement-units')" 
+            @click="handleLinkClick" 
+            class="flex items-center py-2 pl-12 pr-6 text-sm text-gray-400 hover:bg-gray-700 hover:text-white"
+            :class="[String($route.name).startsWith('refs') && 'bg-gray-600 !text-white']"
+          >
+            <BookOpenText class="w-5 h-5" />
+            <span class="mx-4">{{ $t('refs.measurement_units') }}</span>
+          </NuxtLink>
+        </div>
       </div>
       
       <NuxtLink 
