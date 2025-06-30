@@ -13,14 +13,30 @@
   "create_new": "Жаңасын енгізу",
   "edit": "Өзгерту",
   "name": "Атауы",
+  "name_ru": "Атауы (орыс.)",
+  "name_kz": "Атауы (қаз.)",
+  "name_en": "Атауы (ағыл.)",
   "loading": "Деректерді жүктелуде...",
   "actions": {
+    "edit": "Өзгерту",
     "save": "Сақтау",
-    "saving": "Сақталуда..."
+    "cancel": "Бас тарту",
+    "saving": "Сақталуда...",
+    "operations": "Әрекеттер",
+    "confirmDelete": "Сіз шынымен көрсетілген жазбаны жойғыңыз келе ме?"
+  },
+  "navigation": {
+    "backToList": "Тізімге оралу"
+  },
+  "messages": {
+    "couldntUploadEditingData": "Өңдеу үшін деректерді жүктеу мүмкін болмады",
+    "couldntUpdateCounterparty": "Контрагентті жаңарту мүмкін болмады"
   },
   "refs": {
     "refs_name": "Анықтамалықтар",
+    "measurement_unit": "Өлшем бірлік",
     "measurement_units": "Өлшем бірліктер",
+    "editMeasurementUnit": "Өлшем бірлікті өңдеу",
     "not_found_or_loading": "табылмады немесе жүктелуде...",
     "check_account": "Банктік шот",
     "corr_account": "Кор.шот",

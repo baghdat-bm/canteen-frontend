@@ -1,40 +1,55 @@
 <template>
   <div class="container mx-auto p-4">
     <div class="w-full max-w-2xl mx-auto">
-       <h1 class="text-2xl font-bold mb-6">Просмотр единицы измерения</h1>
-        <div v-if="store.loading" class="text-center">
-            <p>Загрузка...</p>
+       <h1 class="text-2xl font-bold mb-6">{{ $t('refs.measurement_unit') }}</h1>
+       
+       <!-- Индикатор загрузки -->
+        <div v-if="store.isLoading" class="text-center">
+            <p>{{ $t('message.loading') }}</p>
         </div>
+        
+        <!-- Карта с данными -->
         <div v-else-if="store.measurementUnit" class="bg-white p-8 rounded-lg shadow-md">
             <div class="space-y-4">
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">ID</h3>
-                    <p class="mt-1 text-sm text-gray-900">{{ store.measurementUnit.id }}</p>
-                </div>
-                 <div>
-                    <h3 class="text-sm font-medium text-gray-500">Наименование (RU)</h3>
-                    <p class="mt-1 text-sm text-gray-900">{{ store.measurementUnit.name_ru }}</p>
-                </div>
-                 <div>
-                    <h3 class="text-sm font-medium text-gray-500">Наименование (KZ)</h3>
-                    <p class="mt-1 text-sm text-gray-900">{{ store.measurementUnit.name_kz }}</p>
-                </div>
-                 <div>
-                    <h3 class="text-sm font-medium text-gray-500">Наименование (EN)</h3>
-                    <p class="mt-1 text-sm text-gray-900">{{ store.measurementUnit.name_en }}</p>
-                </div>
+              <!-- ID -->
+              <div class="flex items-baseline">
+                <span class="w-1/3 text-gray-500 font-semibold">ID</span>
+                <p class="w-2/3 text-gray-900">{{ store.measurementUnit.id }}</p>
+              </div>
+
+              <!-- Наименование (KZ) -->
+              <div class="flex items-baseline">
+                <span class="w-1/3 text-gray-500 font-semibold">{{ $t('name_kz') }}</span>
+                <p class="w-2/3 text-gray-900">{{ store.measurementUnit.name_kz }}</p>
+              </div>
+
+              <!-- Наименование (RU) -->
+              <div class="flex items-baseline">
+                <span class="w-1/3 text-gray-500 font-semibold">{{ $t('name_ru') }}</span>
+                <p class="w-2/3 text-gray-900">{{ store.measurementUnit.name_ru }}</p>
+              </div>
+
+              <!-- Наименование (EN) -->
+              <div class="flex items-baseline">
+                <span class="w-1/3 text-gray-500 font-semibold">{{ $t('name_en') }}</span>
+                <p class="w-2/3 text-gray-900">{{ store.measurementUnit.name_en }}</p>
+              </div>
             </div>
+            
+            <!-- Кнопки действий -->
              <div class="mt-8 flex justify-end space-x-4">
-                <NuxtLink to="/measurement-units" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
-                  Назад к списку
+                <NuxtLink :to="localePath('/measurement-units')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
+                  {{ $t('navigation.backToList') }}
                 </NuxtLink>
-                <NuxtLink :to="`/measurement-units/${route.params.id}/edit`" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                  Изменить
+                <NuxtLink :to="localePath(`/measurement-units/${route.params.id}/edit`)" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                  {{ $t('actions.edit') }}
                 </NuxtLink>
             </div>
         </div>
+        
+        <!-- Сообщение, если данные не найдены -->
          <div v-else class="text-center text-gray-500">
-            <p>Единица измерения не найдена.</p>
+            <p>{{ $t('message.notFound') }}</p>
         </div>
     </div>
   </div>
@@ -44,11 +59,16 @@
 import { onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useMeasurementUnitsStore } from '~/stores/measurementUnits';
+import { useI18n } from 'vue-i18n';
 
+// --- Подключение composables ---
 const store = useMeasurementUnitsStore();
 const route = useRoute();
+const { t } = useI18n();
+const localePath = useLocalePath();
 
-// Получаем ID из параметров маршрута и загружаем данные
+// --- Хуки жизненного цикла ---
+// Получаем ID из параметров маршрута и загружаем данные при монтировании компонента
 onMounted(() => {
     const id = Number(route.params.id);
     if (!isNaN(id)) {

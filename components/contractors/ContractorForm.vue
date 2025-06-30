@@ -21,9 +21,14 @@
       <input type="text" id="check_account" v-model="formData.check_account" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
     </div>
     
-    <button type="submit" :disabled="isSubmitting" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
-      {{ isSubmitting ? $t('actions.saving') : $t('actions.save') }}
-    </button>
+    <div class="flex justify-end space-x-4">
+      <NuxtLink to="/contractors" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
+          {{ $t('actions.cancel') }}
+        </NuxtLink>
+      <button type="submit" :disabled="isSubmitting" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
+        {{ isSubmitting ? $t('actions.saving') : $t('actions.save') }}
+      </button>
+    </div>
   </form>
 </template>
 

@@ -1,55 +1,106 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-4">
+  <div class="container mx-auto p-4">
+    <!-- Заголовок страницы и кнопка создания -->
+    <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">{{ $t('contractors') }}</h1>
-      <NuxtLink :to="localePath('/contractors/create')" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+      <NuxtLink :to="localePath('/contractors/create')"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
         {{ $t('create_new') }}
       </NuxtLink>
     </div>
-    
-    <div v-if="store.isLoading" class="text-center">{{ $t('loading') }}</div>
-    
-    <div v-else-if="store.contractors.length === 0" class="text-center text-gray-500">
-      Нет данных
+
+    <!-- Индикатор загрузки -->
+    <div v-if="pending" class="text-center">
+      <p>{{ $t('message.loading') }}</p>
     </div>
 
-    <ul v-else class="divide-y divide-gray-200">
-      <li v-for="contractor in store.contractors" :key="contractor.id" class="p-4 flex justify-between items-center hover:bg-gray-50">
-        <NuxtLink :to="localePath(`/contractors/${contractor.id}`)" class="flex-grow">
-          <span class="font-medium">{{ contractor.name }}</span>
-          <span class="text-sm text-gray-500 ml-2">(ID: {{ contractor.id }})</span>
-        </NuxtLink>
-        <div class="flex items-center space-x-2">
-          <NuxtLink :to="localePath(`/contractors/${contractor.id}/edit`)" class="text-green-600 hover:text-green-800">
-            <Pencil class="w-5 h-5"/>
-          </NuxtLink>
-          <button @click="confirmDelete(contractor.id)" class="text-red-600 hover:text-red-800">
-            <Trash2 class="w-5 h-5"/>
-          </button>
-        </div>
-      </li>
-    </ul>
+    <!-- Сообщение, если нет данных -->
+    <div v-else-if="store.contractors.length === 0" class="text-center text-gray-500">
+       {{ $t('message.noData') }}
+    </div>
+
+    <!-- Таблица с данными -->
+    <div v-else class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table class="min-w-full leading-normal">
+        <thead>
+          <tr>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-16">
+              ID
+            </th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              {{ $t('name') }}
+            </th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              {{ $t('actions.operations') }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="contractor in store.contractors" :key="contractor.id" @click="viewContractor(contractor.id)"
+              class="cursor-pointer hover:bg-gray-100">
+            
+            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+              {{ contractor.id }}
+            </td>
+            
+            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+              <p class="text-gray-900 whitespace-no-wrap">
+                {{ contractor.name }}
+              </p>
+            </td>
+
+            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+              <div class="flex items-center space-x-4">
+                <NuxtLink :to="localePath(`/contractors/${contractor.id}/edit`)" @click.stop
+                          class="text-indigo-600 hover:text-indigo-900">
+                  <Pencil class="w-5 h-5"/>
+                </NuxtLink>
+                <button @click.stop="confirmDelete(contractor.id)" class="text-red-600 hover:text-red-900">
+                  <Trash2 class="w-5 h-5"/>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { useContractorsStore } from '~/stores/contractors';
-import { Pencil, Trash2 } from 'lucide-vue-next'; // Пример иконок
+import { Pencil, Trash2 } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
+// --- Подключение composables ---
+const router = useRouter();
 const localePath = useLocalePath();
 const store = useContractorsStore();
 const { t } = useI18n();
 
-// Запрашиваем данные при первой загрузке компонента
-// useAsyncData гарантирует, что это сработает и на сервере, и на клиенте
-const { data, pending, error, refresh } = await useAsyncData(
+// --- Загрузка данных ---
+const { pending } = await useAsyncData(
   'contractors-list',
   () => store.fetchContractors()
 );
 
+// --- Функции ---
+
+/**
+ * Переход на страницу детального просмотра
+ * @param {number} id - ID контрагента
+ */
+function viewContractor(id) {
+  router.push(localePath(`/contractors/${id}`));
+}
+
+/**
+ * Запрос подтверждения и удаление
+ * @param {number} id - ID контрагента
+ */
 function confirmDelete(id) {
-  // Простое подтверждение через браузер. Можно заменить на красивый модал.
-  if (window.confirm('Вы уверены, что хотите удалить этого контрагента?')) {
+  if (window.confirm(t('actions.confirmDelete'))) {
     store.deleteContractor(id);
   }
 }

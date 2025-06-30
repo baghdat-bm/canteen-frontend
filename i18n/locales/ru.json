@@ -13,14 +13,30 @@
   "create_new": "Создать нового",
   "edit": "Редактировать",
   "name": "Наименование",
+  "name_ru": "Наименование (рус.)",
+  "name_kz": "Наименование (каз.)",
+  "name_en": "Наименование (анг.)",
   "loading": "Загрузка данных...",
   "actions": {
+    "edit": "Редактировать",
     "save": "Сохранить",
-    "saving": "Сохранение..."
+    "cancel": "Отмена",
+    "saving": "Сохранение...",
+    "operations": "Действия",
+    "confirmDelete": "Вы действительно хотите удалить указанную запись?"
+  },
+  "navigation": {
+    "backToList": "Назад к списку"
+  },
+  "messages": {
+    "couldntUploadEditingData": "Не удалось загрузить данные для редактирования",
+    "couldntUpdateCounterparty": "Не удалось обновить контрагента"
   },
   "refs": {
     "refs_name": "Справочники",
-    "measurement_units": "Единицы измерения",
+    "measurement_unit": "Единица измерения",
+    "measurement_units": "Единицы измерений",
+    "editMeasurementUnit": "Изменение единицы измерения",
     "not_found_or_loading": "не найден или загружается...",
     "check_account": "Банковский счет",
     "corr_account": "Кор.счет",

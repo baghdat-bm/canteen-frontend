@@ -1,15 +1,15 @@
 <template>
   <div class="container mx-auto p-4">
      <div class="w-full max-w-2xl mx-auto">
-      <h1 class="text-2xl font-bold mb-6">Редактировать единицу измерения</h1>
+      <h1 class="text-2xl font-bold mb-6">{{ $t('refs.editMeasurementUnit') }}</h1>
        <div v-if="store.loading" class="text-center">
-        <p>Загрузка данных...</p>
+        <p>{{ $t('loading') }}</p>
       </div>
        <div v-else-if="store.measurementUnit" class="bg-white p-8 rounded-lg shadow-md">
           <MeasurementUnitForm :measurement-unit="store.measurementUnit" @submit="handleSubmit" />
        </div>
        <div v-else class="text-center">
-         <p>Не удалось загрузить данные для редактирования.</p>
+         <p>{{ $t('messages.couldntUploadEditingData') }}.</p>
        </div>
     </div>
   </div>
