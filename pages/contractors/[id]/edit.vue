@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-4">
     <div class="w-full max-w-2xl mx-auto">
-      <h1 class="text-2xl font-bold mb-6">{{ $t('refs.edit_contractor') }}</h1>
+      <h1 class="text-2xl font-bold mb-6">{{ $t('contractor.editTitle') }}</h1>
       
       <!-- Индикатор загрузки -->
       <div v-if="pending" class="text-center">
@@ -15,7 +15,7 @@
       
       <!-- Сообщение, если данные не найдены -->
       <div v-else class="text-center">
-        <p>{{ $t('messages.couldntUploadEditingData') }}</p>
+        <p>{{ $t('message.couldntUploadEditingData') }}</p>
       </div>
     </div>
   </div>
@@ -25,13 +25,12 @@
 import { ref, computed } from 'vue';
 import { useContractorsStore } from '~/stores/contractors';
 import ContractorForm from '~/components/contractors/ContractorForm.vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
 // --- Подключение composables ---
 const store = useContractorsStore();
 const route = useRoute();
-const router = useRouter();
 const localePath = useLocalePath();
 const { t } = useI18n();
 const isSubmitting = ref(false);
@@ -51,8 +50,8 @@ async function handleUpdate(formData) {
   isSubmitting.value = true;
   try {
     await store.updateContractor(contractorId.value, formData);
-    // После успешного обновления переходим на страницу деталей
-    router.push(localePath(`/contractors/${contractorId.value}`));
+    // После успешного обновления переходим на страницу списка
+    await navigateTo(localePath('/contractors'));
   } catch (error) {
     // В реальном приложении здесь лучше показать уведомление пользователю
     console.error('Failed to update contractor:', error);

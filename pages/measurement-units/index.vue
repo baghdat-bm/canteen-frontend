@@ -11,7 +11,7 @@
 
     <!-- Индикатор загрузки -->
     <div v-if="store.isLoading" class="text-center">
-      <p>{{ $t('message.loading') }}</p>
+      <p>{{ $t('loading') }}</p>
     </div>
 
     <!-- Таблица с данными -->
