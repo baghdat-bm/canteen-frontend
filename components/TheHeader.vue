@@ -16,8 +16,8 @@
 
       <div class="relative">
         <select v-model="languageModel" class="p-1 border rounded-md text-sm cursor-pointer">
-          <option value="kz">🇰🇿 KZ</option>
-          <option value="ru">🇷🇺 RU</option>
+          <option value="kz">KZ</option>
+          <option value="ru">RU</option>
         </select>
       </div>
     </div>
