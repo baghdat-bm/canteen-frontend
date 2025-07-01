@@ -35,14 +35,22 @@
                 <p class="w-2/3 text-gray-900">{{ store.writingOffReason.name_en }}</p>
               </div>
 
-              <div class="flex items-baseline">
+              <!-- Списание -->
+              <div class="flex items-center">
                 <span class="w-1/3 text-gray-500 font-semibold">{{ $t('refs.writingOff') }}</span>
-                <p class="w-2/3 text-gray-900">{{ store.writingOffReason.write_off }}</p>
+                <div class="w-2/3">
+                  <CheckCircle2 v-if="store.writingOffReason.write_off" class="w-6 h-6 text-green-500" />
+                  <XCircle v-else class="w-6 h-6 text-red-500" />
+                </div>
               </div>
 
-              <div class="flex items-baseline">
+              <!-- Запрос комментария -->
+              <div class="flex items-center">
                 <span class="w-1/3 text-gray-500 font-semibold">{{ $t('refs.requestComment') }}</span>
-                <p class="w-2/3 text-gray-900">{{ store.writingOffReason.request_comment }}</p>
+                <div class="w-2/3">
+                  <CheckCircle2 v-if="store.writingOffReason.request_comment" class="w-6 h-6 text-green-500" />
+                  <XCircle v-else class="w-6 h-6 text-red-500" />
+                </div>
               </div>
 
             </div>
@@ -71,6 +79,7 @@ import { onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useWritingOffReasonsStore } from '~/stores/writingOffReasons';
 import { useI18n } from 'vue-i18n';
+import { CheckCircle2, XCircle } from 'lucide-vue-next';
 
 // --- Подключение composables ---
 const store = useWritingOffReasonsStore();
@@ -83,7 +92,8 @@ const localePath = useLocalePath();
 onMounted(() => {
     const id = Number(route.params.id);
     if (!isNaN(id)) {
-        store.fetchRecords(id);
+        // [ИСПРАВЛЕНО] Вызываем правильный метод для загрузки одной записи
+        store.fetchRecord(id);
     }
 });
 </script>
