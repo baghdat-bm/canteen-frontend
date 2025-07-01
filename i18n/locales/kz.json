@@ -29,10 +29,13 @@
     "backToList": "Тізімге оралу"
   },
   "messages": {
+    "notFound": "Табылған жоқ",
+    "confirmLogout": "Сіз шынымен жүйеден шыққыңыз келе ме?",
     "couldntUploadEditingData": "Өңдеу үшін деректерді жүктеу мүмкін болмады",
     "couldntUpdateCounterparty": "Контрагентті жаңарту мүмкін болмады",
     "couldntCreateCounterparty": "Жаңа контрагент енгізу мүмкін болмады",
-    "couldntCreateMeasurementUnit": "Жаңа өлшем бірлігін енгізу мүмкін болмады"
+    "couldntCreateMeasurementUnit": "Жаңа өлшем бірлігін енгізу мүмкін болмады",
+    "couldntCreateWritingOffReason": "Жаңа қоймадан шығарудың себебін енгiзу мүмкін болмады"
   },
   "refs": {
     "refs_name": "Анықтамалықтар",
@@ -45,6 +48,11 @@
     "corr_account": "Кор.шот",
     "bik": "БСК",
     "edit_contractor": "Контрагентті өңдеу",
-    "createContractor": "Жаңа контрагент енгізу"
+    "createContractor": "Жаңа контрагент енгізу",
+    "writingOffReason": "Қоймадан шығару себебi",
+    "writingOffReasons": "Қоймадан шығару себептері",
+    "createWritingOffReason": "Жаңа қоймадан шығарудың себебін енгiзу",
+    "writingOff": "Қойма есебiнен шығару",
+    "requestComment": "Түсініктеме талап ету"
   }
 }

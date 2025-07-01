@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-4">
     <div class="w-full max-w-2xl mx-auto">
-      <h1 class="text-2xl font-bold mb-6">{{ $t('contractor.editTitle') }}</h1>
+      <h1 class="text-2xl font-bold mb-6">{{ $t('refs.edit_contractor') }}</h1>
       
       <!-- Индикатор загрузки -->
       <div v-if="pending" class="text-center">
@@ -15,7 +15,7 @@
       
       <!-- Сообщение, если данные не найдены -->
       <div v-else class="text-center">
-        <p>{{ $t('message.couldntUploadEditingData') }}</p>
+        <p>{{ $t('messages.couldntUploadEditingData') }}</p>
       </div>
     </div>
   </div>

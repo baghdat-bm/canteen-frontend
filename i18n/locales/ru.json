@@ -29,10 +29,13 @@
     "backToList": "Назад к списку"
   },
   "messages": {
+    "notFound": "Не найден",
+    "confirmLogout": "Вы действиетльно хотите выйти из системы?",
     "couldntUploadEditingData": "Не удалось загрузить данные для редактирования",
     "couldntUpdateCounterparty": "Не удалось обновить контрагента",
     "couldntCreateCounterparty": "Не удалось создать контрагента",
-    "couldntCreateMeasurementUnit": "Не удалось создать единицу измерения"
+    "couldntCreateMeasurementUnit": "Не удалось создать единицу измерения",
+    "couldntCreateWritingOffReason": "Не удалось создать причину списания со склада"
   },
   "refs": {
     "refs_name": "Справочники",
@@ -45,6 +48,11 @@
     "corr_account": "Кор.счет",
     "bik": "БИК",
     "edit_contractor": "Редактирование контрагента",
-    "createContractor": "Создание контрагента"
-  }
+    "createContractor": "Создание контрагента",
+    "writingOffReason": "Причина списания со склада",
+    "writingOffReasons": "Причины списания со склада",
+    "createWritingOffReason": "Создать причину списания со склада",
+    "writingOff": "Списывать со склада",
+    "requestComment": "Требовать комментарий"
+  }  
 }
