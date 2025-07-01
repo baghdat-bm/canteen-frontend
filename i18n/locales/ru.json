@@ -53,6 +53,8 @@
     "writingOffReasons": "Причины списания со склада",
     "createWritingOffReason": "Создать причину списания со склада",
     "writingOff": "Списывать со склада",
-    "requestComment": "Требовать комментарий"
+    "requestComment": "Требовать комментарий",
+    "color": "Цвет",
+    "logo": "Изображение"
   }  
 }

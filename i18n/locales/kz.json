@@ -53,6 +53,8 @@
     "writingOffReasons": "Қоймадан шығару себептері",
     "createWritingOffReason": "Жаңа қоймадан шығарудың себебін енгiзу",
     "writingOff": "Қойма есебiнен шығару",
-    "requestComment": "Түсініктеме талап ету"
+    "requestComment": "Түсініктеме талап ету",
+    "color": "Түсі",
+    "logo": "Сурет"
   }
 }
