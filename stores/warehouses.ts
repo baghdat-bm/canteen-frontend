@@ -2,31 +2,31 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { apiClient } from '~/utils/apiClient';
 import { useUiStore } from './ui.js'; 
+// 1. Импортируем хранилище аутентификации
+import { useAuthStore } from './auth';
+import { useNuxtApp } from '#app';
 
 // Определяем интерфейс для объекта записи
 export interface Warehouse {
     id: number;
-    name: string;    
+    name: string;
+    description: string;
     school: number;
 }
 
-// Определяем интерфейс для данных, отправляемых при создании (без id)
-export type WarehousePayload = Omit<Warehouse, 'id'>;
+// 2. Изменяем Payload, чтобы он не требовал 'school' при вызове
+// Теперь при создании/обновлении нужно будет передавать только `name` и `description`.
+export type WarehousePayload = Omit<Warehouse, 'id' | 'school'>;
 
 
 export const useWarehouseStore = defineStore('warehouses', () => {
     // --- State ---
-    // Список всех записей
     const warehouses = ref<Warehouse[]>([]);
-    // Одна выбранная запись
     const warehouse = ref<Warehouse | null>(null);
-    // Время последнего запроса для кэширования
     const lastFetched = ref<Date | null>(null);
-    // Состояние загрузки
     const isLoading = ref(false);
 
     // --- Getters ---
-    // Проверяет, нужно ли загружать данные с сервера (кэш 15 минут)
     const shouldFetch = computed(() => {
         if (!lastFetched.value) {
             return true;
@@ -37,10 +37,6 @@ export const useWarehouseStore = defineStore('warehouses', () => {
 
     // --- Actions ---
     
-    /**
-     * Получение списка всех записей с сервера
-     * @param {boolean} force - Принудительно обновить данные, игнорируя кэш
-     */
     async function fetchRecords(force = false) {
         const uiStore = useUiStore(); 
         if (!shouldFetch.value && !force) {
@@ -52,10 +48,10 @@ export const useWarehouseStore = defineStore('warehouses', () => {
             const response = await apiClient<Warehouse[]>('/warehouses/');
             warehouses.value = response;
             lastFetched.value = new Date();
-        } catch (error) {            
+        } catch (error) {           
             const errText = 'Failed to fetch warehouses';
             uiStore.showNotification({
-                message: errText,
+                message: errText, // Здесь тоже хорошо бы использовать t()
                 type: 'error',
                 duration: 7000
             });
@@ -65,10 +61,6 @@ export const useWarehouseStore = defineStore('warehouses', () => {
         }
     }
 
-    /**
-     * Получение одной записей по ID
-     * @param {number} id - ID записи
-     */
     async function fetchRecord(id: number) {
         const uiStore = useUiStore(); 
         isLoading.value = true;
@@ -80,7 +72,7 @@ export const useWarehouseStore = defineStore('warehouses', () => {
             console.error(errText, error);
             warehouse.value = null;
             uiStore.showNotification({
-                message: errText,
+                message: errText, // И здесь
                 type: 'error',
                 duration: 7000
             });
@@ -89,82 +81,86 @@ export const useWarehouseStore = defineStore('warehouses', () => {
         }
     }
 
-    /**
-     * Создание новой записи
-     * @param {WarehousePayload} payload - Данные для создания
-     */
     async function createRecord(payload: WarehousePayload) {
         const uiStore = useUiStore(); 
+        // 3. Получаем доступ к хранилищу auth
+        const authStore = useAuthStore();
+        const { t } = useNuxtApp().$i18n;
+
+        // 4. Проверяем, есть ли у нас ID школы
+        if (!authStore.userProfile?.school_id) {
+            uiStore.showNotification({ message: t('warehouse.noSchoolIdError'), type: 'error' });
+            console.error("Cannot create record: school_id is missing from user profile.");
+            return;
+        }
+
         try {
+            // 5. Создаем полный объект для отправки, добавляя school_id
+            const fullPayload = {
+                ...payload,
+                school: authStore.userProfile.school_id
+            };
+
             await apiClient('/warehouses/', {
                 method: 'POST',
-                body: payload,
+                body: fullPayload,
             });
-            // Инвалидация кэша после создания
-            lastFetched.value = null;
+            lastFetched.value = null; // Инвалидация кэша            
         } catch (error) {
-            const errText = 'Failed to create warehouse';
-            console.error(errText, error);            
-            uiStore.showNotification({
-                message: errText,
-                type: 'error',
-                duration: 7000
-            });
+            console.error('Failed to create warehouse:', error);           
+            uiStore.showNotification({ message: 'Failed to create warehouse', type: 'error' });
         }
     }
 
-    /**
-     * Обновление существующей записи
-     * @param {number} id - ID записи
-     * @param {WarehousePayload} payload - Данные для обновления
-     */
     async function updateRecord(id: number, payload: WarehousePayload) {
         const uiStore = useUiStore(); 
+        // Повторяем ту же логику для обновления
+        const authStore = useAuthStore();
+        const { t } = useNuxtApp().$i18n;
+
+        if (!authStore.userProfile?.school_id) {
+            uiStore.showNotification({ message: t('warehouse.noSchoolIdError'), type: 'error' });
+            console.error("Cannot update record: school_id is missing from user profile.");
+            return;
+        }
+
         try {
+            const fullPayload = {
+                ...payload,
+                school: authStore.userProfile.school_id
+            };
+
             await apiClient(`/warehouses/${id}/`, {
                 method: 'PUT',
-                body: payload,
+                body: fullPayload,
             });
-            // Инвалидация кэша
-            lastFetched.value = null;
+            lastFetched.value = null; // Инвалидация кэша            
         } catch (error) {
             const errText = `Failed to update warehouse with id ${id}`;
             console.error(errText, error);
-            uiStore.showNotification({
-                message: errText,
-                type: 'error',
-                duration: 7000
-            });
+            uiStore.showNotification({ message: errText, type: 'error' });
         }
     }
     
-    /**
-     * Удаление записи
-     * @param {number} id - ID записи
-     */
     async function deleteRecord(id: number) {
-
-        const uiStore = useUiStore();        
-        const nuxtApp = useNuxtApp();        
-        const { t } = nuxtApp.$i18n;
+        const uiStore = useUiStore();         
+        const { t } = useNuxtApp().$i18n;
 
         try {
             await apiClient(`/warehouses/${id}/`, {
                 method: 'DELETE',
             });
-            // Инвалидация кэша и обновление списка
             lastFetched.value = null;
             await fetchRecords(true); // Принудительное обновление
-
             uiStore.showNotification({
                 message: t('warehouse.itemDeleted'),
-                type: 'success',
+                type: 'success'
             });
         } catch (error) {
-            console.error(`Failed to delete warehouse with id ${id}:`, error);
-
+            const errText = t('warehouse.errorOnDelete');
+            console.error(errText, error);
             uiStore.showNotification({
-                message: t('warehouse.errorOnDelete'),
+                message: errText,
                 type: 'error',
                 duration: 7000
             });
