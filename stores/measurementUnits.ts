@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { apiClient } from '~/utils/apiClient';
+import { useUiStore } from './ui.js'; 
 
 // Определяем интерфейс для объекта единицы измерения
 export interface MeasurementUnit {
@@ -42,6 +43,7 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
      * @param {boolean} force - Принудительно обновить данные, игнорируя кэш
      */
     async function fetchMeasurementUnits(force = false) {
+        const uiStore = useUiStore();
         if (!shouldFetch.value && !force) {
             return;
         }
@@ -51,8 +53,14 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
             const response = await apiClient<MeasurementUnit[]>('/measurement-units/');
             measurementUnits.value = response;
             lastFetched.value = new Date();
-        } catch (error) {
-            console.error('Failed to fetch measurement units:', error);
+        } catch (error) {            
+            const errText = 'Failed to fetch measurement units';
+            console.error(errText, error);
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
         } finally {
             isLoading.value = false;
         }
@@ -63,13 +71,20 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
      * @param {number} id - ID единицы измерения
      */
     async function fetchMeasurementUnit(id: number) {
+        const uiStore = useUiStore();
         isLoading.value = true;
         try {
             const response = await apiClient<MeasurementUnit>(`/measurement-units/${id}/`);
             measurementUnit.value = response;
-        } catch (error) {
-            console.error(`Failed to fetch measurement unit with id ${id}:`, error);
+        } catch (error) {            
             measurementUnit.value = null;
+            const errText = `Failed to fetch measurement unit with id ${id}`;
+            console.error(errText, error);
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
         } finally {
             isLoading.value = false;
         }
@@ -80,6 +95,7 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
      * @param {MeasurementUnitPayload} payload - Данные для создания
      */
     async function createMeasurementUnit(payload: MeasurementUnitPayload) {
+        const uiStore = useUiStore();
         try {
             await apiClient('/measurement-units/', {
                 method: 'POST',
@@ -87,10 +103,14 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
             });
             // Инвалидация кэша после создания
             lastFetched.value = null;
-        } catch (error) {
-            console.error('Failed to create measurement unit:', error);
-            // Чтобы компонент мог обработать ошибку, пробрасываем ее дальше
-            throw error;
+        } catch (error) {            
+            const errText = 'Failed to create measurement unit';
+            console.error(errText, error);
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
         }
     }
 
@@ -100,6 +120,7 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
      * @param {MeasurementUnitPayload} payload - Данные для обновления
      */
     async function updateMeasurementUnit(id: number, payload: MeasurementUnitPayload) {
+        const uiStore = useUiStore();
         try {
             await apiClient(`/measurement-units/${id}/`, {
                 method: 'PUT',
@@ -107,9 +128,14 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
             });
             // Инвалидация кэша
             lastFetched.value = null;
-        } catch (error) {
-            console.error(`Failed to update measurement unit with id ${id}:`, error);
-            throw error;
+        } catch (error) {            
+            const errText = `Failed to update measurement unit with id ${id}`;
+            console.error(errText, error);
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
         }
     }
     
@@ -118,6 +144,11 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
      * @param {number} id - ID единицы измерения
      */
     async function deleteMeasurementUnit(id: number) {
+
+        const uiStore = useUiStore();        
+        const nuxtApp = useNuxtApp();        
+        const { t } = nuxtApp.$i18n;
+
         try {
             await apiClient(`/measurement-units/${id}/`, {
                 method: 'DELETE',
@@ -125,8 +156,19 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
             // Инвалидация кэша и обновление списка
             lastFetched.value = null;
             await fetchMeasurementUnits(true); // Принудительное обновление
+
+            uiStore.showNotification({
+                message: t('measurementUnit.itemDeleted'),
+                type: 'success',
+            });
         } catch (error) {
             console.error(`Failed to delete measurement unit with id ${id}:`, error);
+
+            uiStore.showNotification({
+                message: t('measurementUnit.errorOnDelete'),
+                type: 'error',
+                duration: 7000
+            });
         }
     }
 

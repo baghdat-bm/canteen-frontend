@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { apiClient } from '~/utils/apiClient';
+import { useUiStore } from './ui.js'; 
 
 // Интерфейс для объекта категории блюд
 export interface DishCategory {
@@ -41,27 +42,41 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
     // --- Actions ---
     
     async function fetchRecords(force = false) {
+        const uiStore = useUiStore(); 
         if (!shouldFetch.value && !force) return;
         isLoading.value = true;
         try {
             const response = await apiClient<DishCategory[]>('/dishes-categories/');
             dishCategories.value = response;
             lastFetched.value = new Date();
-        } catch (error) {
-            console.error('Failed to fetch dish categories:', error);
+        } catch (error) {            
+            const errText = 'Failed to fetch dish categories';
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
+            console.error(errText, error);
         } finally {
             isLoading.value = false;
         }
     }
 
     async function fetchRecord(id: number) {
+        const uiStore = useUiStore(); 
         isLoading.value = true;
         try {
             const response = await apiClient<DishCategory>(`/dishes-categories/${id}/`);
             dishCategory.value = response;
-        } catch (error) {
-            console.error(`Failed to fetch dish category with id ${id}:`, error);
+        } catch (error) {            
             dishCategory.value = null;
+            const errText = `Failed to fetch dish category with id ${id}`;
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
+            console.error(errText, error); 
         } finally {
             isLoading.value = false;
         }
@@ -87,6 +102,7 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
     }
 
     async function createRecord(payload: DishCategoryPayload) {
+        const uiStore = useUiStore(); 
         const formData = createFormData(payload);
         try {
             await apiClient('/dishes-categories/', {
@@ -94,13 +110,19 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
                 body: formData,
             });
             lastFetched.value = null;
-        } catch (error) {
-            console.error('Failed to create dish category:', error);
-            throw error;
+        } catch (error) {            
+            const errText = 'Failed to create dish category';
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
+            console.error(errText, error); 
         }
     }
 
     async function updateRecord(id: number, payload: DishCategoryPayload) {
+        const uiStore = useUiStore(); 
         const formData = createFormData(payload);
         try {
             // Используем PATCH, чтобы можно было не отправлять файл, если он не менялся
@@ -109,21 +131,42 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
                 body: formData,
             });
             lastFetched.value = null;
-        } catch (error) {
-            console.error(`Failed to update dish category with id ${id}:`, error);
-            throw error;
+        } catch (error) {            
+            const errText = `Failed to update dish category with id ${id}`;
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
+            console.error(errText, error); 
         }
     }
     
     async function deleteRecord(id: number) {
+        
+        const uiStore = useUiStore();        
+        const nuxtApp = useNuxtApp();        
+        const { t } = nuxtApp.$i18n;
+
         try {
             await apiClient(`/dishes-categories/${id}/`, {
                 method: 'DELETE',
             });
             lastFetched.value = null;
             await fetchRecords(true);
+
+            uiStore.showNotification({
+                message: t('dishCategory.itemDeleted'),
+                type: 'success',
+            });
         } catch (error) {            
             console.error(`Failed to delete dish category with id ${id}:`, error);
+
+            uiStore.showNotification({
+                message: t('dishCategory.errorOnDelete'),
+                type: 'error',
+                duration: 7000
+            });
         }
     }
 

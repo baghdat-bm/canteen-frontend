@@ -4,25 +4,22 @@ import { apiClient } from '~/utils/apiClient';
 import { useUiStore } from './ui.js'; 
 
 // Определяем интерфейс для объекта записи
-export interface WritingOffReason {
+export interface Warehouse {
     id: number;
-    name_kz: string;
-    name_ru: string;
-    name_en: string;
-    write_off: boolean;
-    request_comment: boolean;
+    name: string;    
+    school: number;
 }
 
 // Определяем интерфейс для данных, отправляемых при создании (без id)
-export type WritingOffReasonPayload = Omit<WritingOffReason, 'id'>;
+export type WarehousePayload = Omit<Warehouse, 'id'>;
 
 
-export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => {
+export const useWarehouseStore = defineStore('warehouses', () => {
     // --- State ---
     // Список всех записей
-    const writingOffReasons = ref<WritingOffReason[]>([]);
+    const warehouses = ref<Warehouse[]>([]);
     // Одна выбранная запись
-    const writingOffReason = ref<WritingOffReason | null>(null);
+    const warehouse = ref<Warehouse | null>(null);
     // Время последнего запроса для кэширования
     const lastFetched = ref<Date | null>(null);
     // Состояние загрузки
@@ -52,17 +49,17 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
 
         isLoading.value = true;
         try {
-            const response = await apiClient<WritingOffReason[]>('/writing-off-reasons/');
-            writingOffReasons.value = response;
+            const response = await apiClient<Warehouse[]>('/warehouses/');
+            warehouses.value = response;
             lastFetched.value = new Date();
         } catch (error) {            
-            const errText = 'Failed to fetch writing-off-reasons';
+            const errText = 'Failed to fetch warehouses';
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error); 
+            console.error(errText, error);
         } finally {
             isLoading.value = false;
         }
@@ -76,17 +73,17 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
         const uiStore = useUiStore(); 
         isLoading.value = true;
         try {
-            const response = await apiClient<WritingOffReason>(`/writing-off-reasons/${id}/`);
-            writingOffReason.value = response;
-        } catch (error) {            
-            writingOffReason.value = null;
-            const errText = `Failed to fetch writing-off-reasons with id ${id}`;
+            const response = await apiClient<Warehouse>(`/warehouses/${id}/`);
+            warehouse.value = response;
+        } catch (error) {
+            const errText = `Failed to fetch warehouse with id ${id}`;
+            console.error(errText, error);
+            warehouse.value = null;
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error); 
         } finally {
             isLoading.value = false;
         }
@@ -94,50 +91,50 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
 
     /**
      * Создание новой записи
-     * @param {WritingOffReasonPayload} payload - Данные для создания
+     * @param {WarehousePayload} payload - Данные для создания
      */
-    async function createRecord(payload: WritingOffReasonPayload) {
+    async function createRecord(payload: WarehousePayload) {
         const uiStore = useUiStore(); 
         try {
-            await apiClient('/writing-off-reasons/', {
+            await apiClient('/warehouses/', {
                 method: 'POST',
                 body: payload,
             });
             // Инвалидация кэша после создания
             lastFetched.value = null;
-        } catch (error) {            
-            const errText = 'Failed to create writing-off-reasons';
+        } catch (error) {
+            const errText = 'Failed to create warehouse';
+            console.error(errText, error);            
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error);  
         }
     }
 
     /**
      * Обновление существующей записи
      * @param {number} id - ID записи
-     * @param {WritingOffReasonPayload} payload - Данные для обновления
+     * @param {WarehousePayload} payload - Данные для обновления
      */
-    async function updateRecord(id: number, payload: WritingOffReasonPayload) {
+    async function updateRecord(id: number, payload: WarehousePayload) {
         const uiStore = useUiStore(); 
         try {
-            await apiClient(`/writing-off-reasons/${id}/`, {
+            await apiClient(`/warehouses/${id}/`, {
                 method: 'PUT',
                 body: payload,
             });
             // Инвалидация кэша
             lastFetched.value = null;
         } catch (error) {
-            const errText = `Failed to update writing-off-reasons with id ${id}`;
+            const errText = `Failed to update warehouse with id ${id}`;
+            console.error(errText, error);
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error);            
         }
     }
     
@@ -152,7 +149,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
         const { t } = nuxtApp.$i18n;
 
         try {
-            await apiClient(`/writing-off-reasons/${id}/`, {
+            await apiClient(`/warehouses/${id}/`, {
                 method: 'DELETE',
             });
             // Инвалидация кэша и обновление списка
@@ -160,14 +157,14 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
             await fetchRecords(true); // Принудительное обновление
 
             uiStore.showNotification({
-                message: t('writingOffReason.itemDeleted'),
+                message: t('warehouse.itemDeleted'),
                 type: 'success',
             });
         } catch (error) {
-            console.error(`Failed to delete writing-off-reasons with id ${id}:`, error);
+            console.error(`Failed to delete warehouse with id ${id}:`, error);
 
             uiStore.showNotification({
-                message: t('writingOffReason.errorOnDelete'),
+                message: t('warehouse.errorOnDelete'),
                 type: 'error',
                 duration: 7000
             });
@@ -175,8 +172,8 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
     }
 
     return {
-        writingOffReasons,
-        writingOffReason,
+        warehouses,
+        warehouse,
         isLoading,
         lastFetched,
         shouldFetch,

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { apiClient } from '~/utils/apiClient'
+import { useUiStore } from './ui.js'; 
 
 // Определяем интерфейс для нашего контрагента
 export interface Contractor {
@@ -33,6 +34,7 @@ export const useContractorsStore = defineStore('contractors', () => {
      * Получает список контрагентов с кэшированием на 15 минут
      */
     async function fetchContractors() {
+        const uiStore = useUiStore(); 
         const CACHE_DURATION = 15 * 60 * 1000; // 15 минут в миллисекундах
 
         // Если данные уже загружены и кэш не протух, ничего не делаем
@@ -47,9 +49,14 @@ export const useContractorsStore = defineStore('contractors', () => {
             const data = await apiClient<Contractor[]>('/contractors/');
             contractors.value = data;
             lastFetched.value = new Date(); // Обновляем время последнего запроса
-        } catch (error) {
-            console.error("Ошибка при загрузке контрагентов:", error);
-            // Здесь можно добавить обработку ошибок, например, всплывающее уведомление
+        } catch (error) {            
+            const errText = "Ошибка при загрузке контрагентов";
+            console.error(errText, error);
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
         } finally {
             isLoading.value = false;
         }
@@ -59,6 +66,7 @@ export const useContractorsStore = defineStore('contractors', () => {
      * Создает нового контрагента
      */
     async function createContractor(data: Omit<Contractor, 'id'>) {
+        const uiStore = useUiStore(); 
         try {
             const newContractor = await apiClient<Contractor>('/contractors/', {
                 method: 'POST',
@@ -69,9 +77,14 @@ export const useContractorsStore = defineStore('contractors', () => {
             // или можно сбросить кэш и перезапросить весь список:
             // lastFetched.value = null;
             // await fetchContractors();
-        } catch (error) {
-            console.error("Ошибка при создании контрагента:", error);
-            throw error; // Пробрасываем ошибку, чтобы компонент мог ее обработать
+        } catch (error) {            
+            const errText = "Ошибка при создании контрагента";
+            console.error(errText, error);
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
         }
     }
 
@@ -79,6 +92,7 @@ export const useContractorsStore = defineStore('contractors', () => {
      * Обновляет существующего контрагента
      */
     async function updateContractor(id: number, data: Partial<Omit<Contractor, 'id'>>) {
+        const uiStore = useUiStore(); 
         try {
             const updatedContractor = await apiClient<Contractor>(`/contractors/${id}/`, {
                 method: 'PATCH',
@@ -89,9 +103,14 @@ export const useContractorsStore = defineStore('contractors', () => {
             if (index !== -1) {
                 contractors.value[index] = updatedContractor;
             }
-        } catch (error) {
-            console.error(`Ошибка при обновлении контрагента ${id}:`, error);
-            throw error;
+        } catch (error) {            
+            const errText = `Ошибка при обновлении контрагента ${id}`;
+            console.error(errText, error);
+            uiStore.showNotification({
+                message: errText,
+                type: 'error',
+                duration: 7000
+            });
         }
     }
 
@@ -99,15 +118,28 @@ export const useContractorsStore = defineStore('contractors', () => {
      * Удаляет контрагента
      */
     async function deleteContractor(id: number) {
+
+        const uiStore = useUiStore();        
+        const nuxtApp = useNuxtApp();        
+        const { t } = nuxtApp.$i18n;
+
         try {
             await apiClient(`/contractors/${id}/`, {
                 method: 'DELETE',
             });
             // Удаляем контрагента из локального списка для мгновенного отклика
             contractors.value = contractors.value.filter(c => c.id !== id);
+            uiStore.showNotification({
+                message: t('contractor.itemDeleted'),
+                type: 'success',
+            });
         } catch (error) {
             console.error(`Ошибка при удалении контрагента ${id}:`, error);
-            throw error;
+            uiStore.showNotification({
+                message: t('contractor.errorOnDelete'),
+                type: 'error',
+                duration: 7000
+            });
         }
     }
 

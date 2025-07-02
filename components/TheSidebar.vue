@@ -140,7 +140,7 @@ function handleLinkClick() {
  * Запрашивает подтверждение и выполняет выход из системы
  */
 function confirmLogout() {
-  if (window.confirm(t('message.confirmLogout'))) {
+  if (window.confirm(t('messages.confirmLogout'))) {
     authStore.logout();
   }
 }

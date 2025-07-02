@@ -8,7 +8,7 @@
     </div>
 
     <div v-if="store.isLoading" class="text-center">
-      <p>{{ $t('message.loading') }}</p>
+      <p>{{ $t('loading') }}</p>
     </div>
 
     <div v-else class="bg-white shadow-md rounded-lg overflow-hidden">

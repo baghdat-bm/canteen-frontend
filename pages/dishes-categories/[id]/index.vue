@@ -22,7 +22,7 @@
             </div>
         </div>
         
-         <div v-else class="text-center text-gray-500"><p>{{ $t('message.notFound') }}</p></div>
+         <div v-else class="text-center text-gray-500"><p>{{ $t('messages.notFound') }}</p></div>
     </div>
   </div>
 </template>
