@@ -122,7 +122,7 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
             });
             lastFetched.value = null;
             await fetchRecords(true);
-        } catch (error) {
+        } catch (error) {            
             console.error(`Failed to delete dish category with id ${id}:`, error);
         }
     }

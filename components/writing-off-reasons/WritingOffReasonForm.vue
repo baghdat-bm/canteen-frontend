@@ -43,7 +43,7 @@
     </div>
 
     <div class="flex justify-end space-x-4">
-       <NuxtLink to="/writing-off-reasons" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
+       <NuxtLink :to="localePath('/writing-off-reasons')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
          {{ $t('actions.cancel') }}
       </NuxtLink>
       <button type="submit"
@@ -62,6 +62,7 @@ import type { WritingOffReasonPayload, WritingOffReason } from '~/stores/writing
 const props = defineProps<{
   writingOffReason ?: WritingOffReason | null;
 }>();
+const localePath = useLocalePath();
 
 // Определяем событие, которое компонент может генерировать
 const emit = defineEmits(['submit']);

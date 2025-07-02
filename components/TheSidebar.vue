@@ -108,7 +108,7 @@ const directoryLinks = ref([
   { name: 'contractors', path: '/contractors', labelKey: 'contractors', icon: Building2 },
   { name: 'measurement-units', path: '/measurement-units', labelKey: 'refs.measurement_units', icon: Ruler },
   { name: 'writing-off-reasons', path: '/writing-off-reasons', labelKey: 'refs.writingOffReasons', icon: BookMinus },
-  { name: 'dishes-categories', path: '/dishes-categories', labelKey: 'dishesCategories.title', icon: UtensilsCrossed }
+  { name: 'dishes-categories', path: '/dishes-categories', labelKey: 'dishCategory.itemList', icon: UtensilsCrossed }
 ]);
 
 const directoryRoutes = directoryLinks.value.map(l => l.name);

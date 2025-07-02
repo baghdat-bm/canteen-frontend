@@ -35,7 +35,8 @@
     "couldntUpdateCounterparty": "Контрагентті жаңарту мүмкін болмады",
     "couldntCreateCounterparty": "Жаңа контрагент енгізу мүмкін болмады",
     "couldntCreateMeasurementUnit": "Жаңа өлшем бірлігін енгізу мүмкін болмады",
-    "couldntCreateWritingOffReason": "Жаңа қоймадан шығарудың себебін енгiзу мүмкін болмады"
+    "couldntCreateWritingOffReason": "Жаңа қоймадан шығарудың себебін енгiзу мүмкін болмады",
+    "select": "Тізімнен таңдаңыз"
   },
   "refs": {
     "refs_name": "Анықтамалықтар",
@@ -56,5 +57,11 @@
     "requestComment": "Түсініктеме талап ету",
     "color": "Түсі",
     "logo": "Сурет"
+  },
+  "dishCategory": {
+    "itemList": "Тағам санаттары",
+    "refName": "Тағам санаты",
+    "couldntUpdateItem": "Тағам санатын жаңарту мүмкін болмады",
+    "couldntCreateItem": "Тағам санатын енгiзу мүмкін болмады"
   }
 }

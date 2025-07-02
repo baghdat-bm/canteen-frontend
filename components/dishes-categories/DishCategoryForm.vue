@@ -18,7 +18,7 @@
     <div>
       <label for="measurement_unit" class="block text-sm font-medium text-gray-700">{{ $t('refs.measurement_unit') }}</label>
       <select v-model="formData.measurement_unit" id="measurement_unit" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-        <option :value="null" disabled>{{ $t('message.select') }}</option>
+        <option :value="null" disabled>{{ $t('messages.select') }}</option>
         <option v-for="unit in measurementUnits" :key="unit.id" :value="unit.id">
           {{ locale === 'kz' ? unit.name_kz : unit.name_ru }}
         </option>
@@ -45,7 +45,7 @@
     
     <!-- Кнопки -->
     <div class="flex justify-end space-x-4 pt-4">
-       <NuxtLink to="/dishes-categories" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
+       <NuxtLink :to="localePath('/dishes-categories')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
          {{ $t('actions.cancel') }}
        </NuxtLink>
       <button type="submit" :disabled="isSubmitting" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400">
@@ -69,6 +69,7 @@ const props = defineProps<{
 const emit = defineEmits(['submit']);
 
 const { locale } = useI18n();
+const localePath = useLocalePath();
 
 const formData = ref<DishCategoryPayload>({
   name_kz: '',

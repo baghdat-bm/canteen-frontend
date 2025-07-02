@@ -1,10 +1,10 @@
 <template>
   <div class="container mx-auto p-4">
     <div class="w-full max-w-2xl mx-auto">
-      <h1 class="text-2xl font-bold mb-6">{{ $t('dishesCategories.editTitle') }}</h1>
+      <h1 class="text-2xl font-bold mb-6">{{ $t('dishCategory.refName') }}</h1>
       
       <div v-if="store.isLoading || unitsStore.isLoading" class="text-center">
-        <p>{{ $t('message.loading') }}</p>
+        <p>{{ $t('loading') }}</p>
       </div>
       
       <div v-else-if="store.dishCategory" class="bg-white p-8 rounded-lg shadow-md">
@@ -17,7 +17,7 @@
       </div>
       
       <div v-else class="text-center">
-        <p>{{ $t('message.couldntUploadEditingData') }}</p>
+        <p>{{ $t('messages.couldntUploadEditingData') }}</p>
       </div>
     </div>
   </div>
@@ -46,7 +46,7 @@ async function handleSubmit(formData: DishCategoryPayload) {
     await store.updateRecord(id, formData);
     await navigateTo(localePath('/dishes-categories'));
   } catch (error) {
-    alert(t('message.couldNotUpdate'));
+    alert(t('dishCategory.couldntUpdateItem'));
   } finally {
     isSubmitting.value = false;
   }

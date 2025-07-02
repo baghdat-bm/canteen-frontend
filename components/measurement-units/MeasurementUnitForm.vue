@@ -19,7 +19,7 @@
     </div>
 
     <div class="flex justify-end space-x-4">
-       <NuxtLink to="/measurement-units" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
+       <NuxtLink :to="localePath('/measurement-units')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
          {{ $t('actions.cancel') }}
       </NuxtLink>
       <button type="submit"
@@ -41,6 +41,7 @@ const props = defineProps<{
 
 // Определяем событие, которое компонент может генерировать
 const emit = defineEmits(['submit']);
+const localePath = useLocalePath();
 
 // Реактивная переменная для данных формы
 const formData = ref<MeasurementUnitPayload>({

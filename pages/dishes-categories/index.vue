@@ -1,9 +1,9 @@
 <template>
   <div class="container mx-auto p-4">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">{{ $t('dishesCategories.title') }}</h1>
+      <h1 class="text-2xl font-bold">{{ $t('dishCategory.itemList') }}</h1>
       <NuxtLink :to="localePath('/dishes-categories/create')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-        {{ $t('button.create') }}
+        {{ $t('create_new') }}
       </NuxtLink>
     </div>
 
@@ -17,9 +17,9 @@
           <tr>
             <!-- Пустой заголовок для цветной полосы -->
             <th class="w-10 p-0 border-gray-200 bg-gray-100"></th>
-            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('field.name') }}</th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('name') }}</th>
             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('refs.measurement_units') }}</th>
-            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('field.actions') }}</th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('actions.operations') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -68,7 +68,7 @@ function viewRecord(id: number) {
 }
 
 function confirmDelete(id: number) {
-  if (window.confirm(t('message.confirmDelete'))) {
+  if (window.confirm(t('actions.confirmDelete'))) {
     store.deleteRecord(id);
   }
 }

@@ -35,7 +35,8 @@
     "couldntUpdateCounterparty": "Не удалось обновить контрагента",
     "couldntCreateCounterparty": "Не удалось создать контрагента",
     "couldntCreateMeasurementUnit": "Не удалось создать единицу измерения",
-    "couldntCreateWritingOffReason": "Не удалось создать причину списания со склада"
+    "couldntCreateWritingOffReason": "Не удалось создать причину списания со склада",
+    "select": "Выберите из списка"
   },
   "refs": {
     "refs_name": "Справочники",
@@ -56,5 +57,11 @@
     "requestComment": "Требовать комментарий",
     "color": "Цвет",
     "logo": "Изображение"
-  }  
+  },
+  "dishCategory": {
+    "itemList": "Категории блюд",
+    "refName": "Категория блюды",
+    "couldntUpdateItem": "Не удалось обновить категорию блюды",
+    "couldntCreateItem": "Не удалось создать категорию блюды"
+  }
 }
