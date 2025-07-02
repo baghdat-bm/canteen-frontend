@@ -40,6 +40,13 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
 
     // --- Actions ---
     
+    function reset() {
+        writingOffReasons.value = [];
+        writingOffReason.value = null;
+        lastFetched.value = null;
+        isLoading.value = false;
+    }
+
     /**
      * Получение списка всех записей с сервера
      * @param {boolean} force - Принудительно обновить данные, игнорируя кэш
@@ -185,5 +192,6 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
         createRecord,
         updateRecord,
         deleteRecord,
+        reset,
     };
 });

@@ -30,6 +30,12 @@ export const useContractorsStore = defineStore('contractors', () => {
 
     // --- Actions ---
 
+    function reset() {
+        contractors.value = [];        
+        lastFetched.value = null;
+        isLoading.value = false;
+    }
+
     /**
      * Получает список контрагентов с кэшированием на 15 минут
      */
@@ -58,6 +64,9 @@ export const useContractorsStore = defineStore('contractors', () => {
                 duration: 7000
             });
         } finally {
+            // setTimeout(()=>{
+            //     isLoading.value = false;
+            // }, 30000);
             isLoading.value = false;
         }
     }
@@ -151,5 +160,6 @@ export const useContractorsStore = defineStore('contractors', () => {
         createContractor,
         updateContractor,
         deleteContractor,
+        reset,
     };
 });

@@ -41,6 +41,13 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
 
     // --- Actions ---
     
+    function reset() {
+        dishCategories.value = [];
+        dishCategory.value = null;
+        lastFetched.value = null;
+        isLoading.value = false;
+    }
+
     async function fetchRecords(force = false) {
         const uiStore = useUiStore(); 
         if (!shouldFetch.value && !force) return;
@@ -179,5 +186,6 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         createRecord,
         updateRecord,
         deleteRecord,
+        reset,
     };
 });

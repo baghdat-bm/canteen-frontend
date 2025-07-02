@@ -1,7 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { apiClient } from '~/utils/apiClient'; 
-import { useLocalePath } from '#i18n' 
+import { useLocalePath } from '#i18n'
+
+import { useWarehouseStore } from './warehouses';
+import { useDishCategoriesStore } from './dishCategories';
+import { useContractorsStore } from './contractors';
+import { useMeasurementUnitsStore } from './measurementUnits';
+import { useWritingOffReasonsStore } from './writingOffReasons';
 
 // Интерфейсы оставляем без изменений
 interface TokenResponse {
@@ -128,9 +134,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function logout() {
-        userProfile.value = null; // <-- Очищаем профиль
+               
+        const warehouseStore = useWarehouseStore();
+        const dishCategoriesStore = useDishCategoriesStore();
+        const contractorsStore = useContractorsStore();
+        const measurementUnitsStore = useMeasurementUnitsStore();
+        const writingOffReasonsStore = useWritingOffReasonsStore();
+
+        warehouseStore.reset();
+        dishCategoriesStore.reset();
+        contractorsStore.reset();
+        measurementUnitsStore.reset();
+        writingOffReasonsStore.reset();
+
+        userProfile.value = null;
         accessToken.value = null;
         refreshToken.value = null;
+
         await router.push(localePath('/login'));
     }
 

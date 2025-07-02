@@ -167,6 +167,13 @@ export const useWarehouseStore = defineStore('warehouses', () => {
         }
     }
 
+    function reset() {
+        warehouses.value = [];
+        warehouse.value = null;
+        lastFetched.value = null;
+        isLoading.value = false;
+    }
+
     return {
         warehouses,
         warehouse,
@@ -178,5 +185,6 @@ export const useWarehouseStore = defineStore('warehouses', () => {
         createRecord,
         updateRecord,
         deleteRecord,
+        reset,
     };
 });

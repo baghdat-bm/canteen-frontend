@@ -38,6 +38,14 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
 
     // --- Actions ---
     
+    function reset() {
+        measurementUnits.value = [];
+        measurementUnit.value = null;
+        lastFetched.value = null;
+        isLoading.value = false;
+    }
+
+
     /**
      * Получение списка всех единиц измерения с сервера
      * @param {boolean} force - Принудительно обновить данные, игнорируя кэш
@@ -183,5 +191,6 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
         createMeasurementUnit,
         updateMeasurementUnit,
         deleteMeasurementUnit,
+        reset,
     };
 });

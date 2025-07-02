@@ -9,9 +9,10 @@
       </NuxtLink>
     </div>
 
-    <!-- Индикатор загрузки -->
-    <div v-if="pending" class="text-center">
-      <p>{{ $t('loading') }}</p>
+    <!-- Индикатор загрузки -->    
+    <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
+      <BaseSpinner />
+      <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
     </div>
 
     <!-- Сообщение, если нет данных -->
@@ -69,6 +70,7 @@
 
 <script setup>
 import { useContractorsStore } from '~/stores/contractors';
+import BaseSpinner from '~/components/BaseSpinner.vue';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
