@@ -31,7 +31,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in store.writingOffReasons" :key="item.id" @click="viewRecord(item.id)"
+          <tr v-for="item in store.warehouses" :key="item.id" @click="viewRecord(item.id)"
               class="cursor-pointer hover:bg-gray-100">
             
             <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
