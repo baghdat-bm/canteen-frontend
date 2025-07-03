@@ -14,6 +14,11 @@
       <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
     </div>
 
+    <!-- Сообщение, если нет данных -->
+    <div v-else-if="!store.warehouses || store.warehouses.length === 0" class="text-center text-gray-500">
+      {{ $t('messages.noData') }}
+    </div>
+
     <!-- Таблица с данными -->
     <div v-else class="bg-white shadow-md rounded-lg overflow-hidden">
       <table class="min-w-full leading-normal">
@@ -62,6 +67,36 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Компонент пагинации -->
+      <div v-if="store.totalRecords > 0" class="p-4 flex items-center justify-between border-t">
+        <p class="text-sm text-gray-700">
+          {{ $t('pagination.showing', {
+          from: (store.currentPage - 1) * store.pageSize + 1,
+          to: Math.min(store.currentPage * store.pageSize, store.totalRecords),
+          total: store.totalRecords
+        })
+          }}
+        </p>
+        <div class="flex space-x-1">
+          <button
+              @click="goToPage(store.currentPage - 1)"
+              :disabled="store.currentPage === 1"
+              class="px-3 py-1 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ $t('pagination.prev') }}
+          </button>
+          <span class="px-3 py-1 text-sm">
+            {{ $t('pagination.page', { current: store.currentPage, total: store.totalPages }) }}
+          </span>
+          <button
+              @click="goToPage(store.currentPage + 1)"
+              :disabled="store.currentPage >= store.totalPages"
+              class="px-3 py-1 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ $t('pagination.next') }}
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -81,6 +116,15 @@ const { t, locale } = useI18n();
 const localePath = useLocalePath();
 
 // --- Функции ---
+
+// Функция для смены страницы
+function goToPage(page: number) {
+  if (page < 1 || page > store.totalPages) {
+    return;
+  }
+  store.fetchRecords(page);
+}
+
 
 /**
  * Переход на страницу детального просмотра записи
@@ -102,6 +146,6 @@ const confirmDelete = (id: number) => {
 
 // --- Хуки жизненного цикла ---
 onMounted(() => {
-  store.fetchRecords();
+  store.fetchRecords(store.currentPage);
 });
 </script>
