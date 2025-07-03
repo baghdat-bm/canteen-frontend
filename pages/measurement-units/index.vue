@@ -46,6 +46,7 @@
       </div>
     </div>
 
+    <!-- Индикатор загрузки -->
     <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
       <BaseSpinner />
       <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
