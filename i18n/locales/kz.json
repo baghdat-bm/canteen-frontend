@@ -29,8 +29,15 @@
   "navigation": {
     "backToList": "Тізімге оралу"
   },
+  "pagination": {
+    "page": "{total} беттің {current}-беті",
+    "prev": "Алдыңғы",
+    "next": "Келесі",
+    "showing": "{from} бастап {to} дейінгi жазбалар. Барлығы {total} жазба"
+  },
   "messages": {
     "notFound": "Табылған жоқ",
+    "noData": "Деректер жоқ",
     "confirmLogout": "Сіз шынымен жүйеден шыққыңыз келе ме?",
     "couldntUploadEditingData": "Өңдеу үшін деректерді жүктеу мүмкін болмады",
     "couldntUpdateCounterparty": "Контрагентті жаңарту мүмкін болмады",
@@ -38,6 +45,16 @@
     "couldntCreateMeasurementUnit": "Жаңа өлшем бірлігін енгізу мүмкін болмады",
     "couldntCreateWritingOffReason": "Жаңа қоймадан шығарудың себебін енгiзу мүмкін болмады",
     "select": "Тізімнен таңдаңыз"
+  },
+  "validation": {
+    "invalidBin": "Дұрыс емес БСН"
+  },
+  "search": {
+    "byName": "Аты бойынша іздеу",
+    "byBin": "БСН-ы бойынша іздеу",
+    "byId": "ID бойынша іздеу",
+    "find": "Іздеу",
+    "reset": "Іздеуді өшіру"
   },
   "refs": {
     "refs_name": "Анықтамалықтар",

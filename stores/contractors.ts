@@ -3,59 +3,98 @@ import { ref, computed } from 'vue'
 import { apiClient } from '~/utils/apiClient'
 import { useUiStore } from './ui.js'; 
 
+// Интерфейс для ответа API с пагинацией
+export interface PaginatedResponse<T> {
+    count: number; // Общее количество записей
+    next: string | null;
+    previous: string | null;
+    results: T[];
+}
+
 // Определяем интерфейс для нашего контрагента
 export interface Contractor {
     id: number;
     name: string;
-    bin: string;
-    bik: string;
-    bank: string;
-    corr_account: string;
-    check_account: string;
+    bin?: string;
+    bik?: string;
+    bank?: string;
+    corr_account?: string;
+    check_account?: string;
 }
 
 export const useContractorsStore = defineStore('contractors', () => {
-    // --- State ---
-    // Список всех контрагентов
+    // --- State ---    
     const contractors = ref<Contractor[]>([]);
-    // Время последнего запроса для кэширования
-    const lastFetched = ref<Date | null>(null);
-    // Состояние загрузки
+    const contractor = ref<Contractor | null>(null);
     const isLoading = ref(false);
 
+    // --- Состояние для пагинации и поиска ---
+    const totalRecords = ref(0);
+    const pageSize = ref(30); // 30 записей на страницу
+    const currentPage = ref(1);
+    const searchQuery = ref({
+        name: '',
+        bin: '',
+        id: ''
+    });
+
     // --- Getters ---
-    // Геттер для получения одного контрагента по ID из списка
+    const totalPages = computed(() => {
+        if (totalRecords.value === 0) return 1;
+        return Math.ceil(totalRecords.value / pageSize.value);
+    });
+    
     const getContractorById = computed(() => {
         return (id: number) => contractors.value.find(c => c.id === id);
     });
 
     // --- Actions ---
-
     function reset() {
-        contractors.value = [];        
-        lastFetched.value = null;
+        contractors.value = [];
+        contractor.value = null;
         isLoading.value = false;
+        totalRecords.value = 0;
+        currentPage.value = 1;
+        searchQuery.value = { name: '', bin: '', id: '' };
     }
 
     /**
-     * Получает список контрагентов с кэшированием на 15 минут
+     * Получает список контрагентов с учетом пагинации и поиска
+     * @param {number} page - Номер страницы для загрузки
      */
-    async function fetchContractors() {
-        const uiStore = useUiStore(); 
-        const CACHE_DURATION = 15 * 60 * 1000; // 15 минут в миллисекундах
-
-        // Если данные уже загружены и кэш не протух, ничего не делаем
-        if (lastFetched.value && (new Date().getTime() - lastFetched.value.getTime() < CACHE_DURATION)) {
-            console.log('Загрузка контрагентов из кэша Pinia.');
-            return;
-        }
-
-        console.log('Кэш устарел, загрузка контрагентов с сервера...');
+    async function fetchRecords(page: number = 1) {
+        const uiStore = useUiStore();
         isLoading.value = true;
+        currentPage.value = page;
+
         try {
-            const data = await apiClient<Contractor[]>('/contractors/');
-            contractors.value = data;
-            lastFetched.value = new Date(); // Обновляем время последнего запроса
+            // Используем URLSearchParams для удобного формирования query-параметров
+            const params = new URLSearchParams();
+
+            // Добавляем параметры поиска, если они не пустые
+            if (searchQuery.value.name) {
+                params.append('name', searchQuery.value.name);
+            }
+            if (searchQuery.value.bin) {
+                params.append('bin', searchQuery.value.bin);
+            }
+            if (searchQuery.value.id) {
+                params.append('id', searchQuery.value.id);
+            }
+
+            if (params.size == 0) {
+                params.append('page', page.toString());
+                params.append('page_size', pageSize.value.toString());
+            }
+
+            console.log(`contractors request params: ${params}`);
+
+            // const response = await apiClient<PaginatedResponse<Contractor>>(`/contractors/?${params.toString()}`);
+            const response = await apiClient<Contractor[]>(`/contractors/?${params.toString()}`);
+            
+            contractors.value = response.results;
+            totalRecords.value = response.count;
+
         } catch (error) {            
             const errText = "Ошибка при загрузке контрагентов";
             console.error(errText, error);
@@ -70,9 +109,32 @@ export const useContractorsStore = defineStore('contractors', () => {
     }
 
     /**
+     * --- Получение одной записи по ID ---
+     */
+    async function fetchRecord(id: number) {
+        const uiStore = useUiStore();
+        const { t } = useNuxtApp().$i18n;
+        isLoading.value = true;
+        contractor.value = null; // Очищаем предыдущее значение
+
+        try {
+            const response = await apiClient<Contractor>(`/contractors/${id}/`);
+            contractor.value = response;
+        } catch (error) {
+            console.error(`Failed to fetch contractor with id ${id}:`, error);
+            uiStore.showNotification({
+                message: t('message.fetchErrorItem'),
+                type: 'error',
+            });
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    /**
      * Создает нового контрагента
      */
-    async function createContractor(data: Omit<Contractor, 'id'>) {
+    async function createRecord(data: Omit<Contractor, 'id'>) {
         const uiStore = useUiStore(); 
         try {
             const newContractor = await apiClient<Contractor>('/contractors/', {
@@ -98,7 +160,7 @@ export const useContractorsStore = defineStore('contractors', () => {
     /**
      * Обновляет существующего контрагента
      */
-    async function updateContractor(id: number, data: Partial<Omit<Contractor, 'id'>>) {
+    async function updateRecord(id: number, data: Partial<Omit<Contractor, 'id'>>) {
         const uiStore = useUiStore(); 
         try {
             const updatedContractor = await apiClient<Contractor>(`/contractors/${id}/`, {
@@ -124,7 +186,7 @@ export const useContractorsStore = defineStore('contractors', () => {
     /**
      * Удаляет контрагента
      */
-    async function deleteContractor(id: number) {
+    async function deleteRecord(id: number) {
 
         const uiStore = useUiStore();        
         const nuxtApp = useNuxtApp();        
@@ -152,12 +214,19 @@ export const useContractorsStore = defineStore('contractors', () => {
 
     return {
         contractors,
+        contractor,
         isLoading,
+        totalRecords,
+        pageSize,
+        currentPage,
+        totalPages,
+        searchQuery,
         getContractorById,
-        fetchContractors,
-        createContractor,
-        updateContractor,
-        deleteContractor,
+        fetchRecords,
+        fetchRecord,
+        createRecord,
+        updateRecord,
+        deleteRecord,
         reset,
     };
 });

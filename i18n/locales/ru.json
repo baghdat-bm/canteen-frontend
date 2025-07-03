@@ -29,8 +29,15 @@
   "navigation": {
     "backToList": "Назад к списку"
   },
+  "pagination": {
+    "page": "Страница {current} из {total}",
+    "prev": "Предыд.",
+    "next": "След.",
+    "showing": "Записи с {from} по {to}. Всего {total} записей"
+  },
   "messages": {
     "notFound": "Не найден",
+    "noData": "Нет данных",
     "confirmLogout": "Вы действиетльно хотите выйти из системы?",
     "couldntUploadEditingData": "Не удалось загрузить данные для редактирования",
     "couldntUpdateCounterparty": "Не удалось обновить контрагента",
@@ -38,6 +45,16 @@
     "couldntCreateMeasurementUnit": "Не удалось создать единицу измерения",
     "couldntCreateWritingOffReason": "Не удалось создать причину списания со склада",
     "select": "Выберите из списка"    
+  },
+  "validation": {
+    "invalidBin": "Не корректный БИН"
+  },
+  "search": {
+    "byName": "Поиск по названию",
+    "byBin": "Поиск по БИН-у",
+    "byId": "Поиск по ID",
+    "find": "Найти",
+    "reset": "Очистить поиск"
   },
   "refs": {
     "refs_name": "Справочники",

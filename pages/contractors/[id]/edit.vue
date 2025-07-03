@@ -50,7 +50,7 @@ const contractor = computed(() => store.getContractorById(contractorId.value));
 async function handleUpdate(formData) {
   isSubmitting.value = true;
   try {
-    await store.updateContractor(contractorId.value, formData);
+    await store.updateRecord(contractorId.value, formData);
     // После успешного обновления переходим на страницу списка
     await navigateTo(localePath('/contractors'));
   } catch (error) {

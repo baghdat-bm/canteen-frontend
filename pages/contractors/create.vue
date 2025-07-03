@@ -24,7 +24,7 @@ const { t } = useI18n();
 async function handleCreate(formData) {
   isSubmitting.value = true;
   try {
-    await store.createContractor(formData);
+    await store.createRecord(formData);
     // После успешного создания переходим на страницу списка
     await navigateTo(localePath('/contractors'));
   } catch (error) {
