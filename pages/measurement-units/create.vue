@@ -22,7 +22,7 @@ const localePath = useLocalePath();
 // Обработчик отправки формы
 const handleSubmit = async (formData: MeasurementUnitPayload) => {
   try {
-    await store.createMeasurementUnit(formData);
+    await store.createRecord(formData);
     await navigateTo(localePath('/measurement-units'));
   }
   catch (error) {

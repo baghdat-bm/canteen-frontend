@@ -40,6 +40,6 @@ async function handleSubmit(formData: DishCategoryPayload) {
 }
 
 onMounted(() => {
-  unitsStore.fetchMeasurementUnits();
+  unitsStore.fetchRecords();
 });
 </script>

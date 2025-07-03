@@ -54,7 +54,7 @@ const handleSubmit = async (formData: MeasurementUnitPayload) => {
 
   isSubmitting.value = true;
   try {
-    await store.updateMeasurementUnit(id, formData);    
+    await store.updateRecord(id, formData);
     await navigateTo(localePath('/measurement-units'));
   } catch (error) {
     console.error('Failed to update measurement unit:', error);    
@@ -68,7 +68,7 @@ const handleSubmit = async (formData: MeasurementUnitPayload) => {
 // Загружаем данные при монтировании компонента
 onMounted(() => {
   if (!isNaN(id)) {
-    store.fetchMeasurementUnit(id);
+    store.fetchRecord(id);
   }
 });
 </script>

@@ -1,6 +1,14 @@
 import { useAuthStore } from '~/stores/auth';
 import type { FetchOptions } from 'ofetch';
 
+// Интерфейс для ответа API с пагинацией
+export interface PaginatedResponse<T> {
+    count: number; // Общее количество записей
+    next: string | null;
+    previous: string | null;
+    results: T[];
+}
+
 export async function apiClient<T>(url: string, options: FetchOptions = {}) {
     const config = useRuntimeConfig();
     const authStore = useAuthStore();

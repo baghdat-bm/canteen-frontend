@@ -77,6 +77,6 @@ onMounted(() => {
   if (!isNaN(id)) {
     store.fetchRecord(id);
   }
-  unitsStore.fetchMeasurementUnits();
+  unitsStore.fetchRecords();
 });
 </script>

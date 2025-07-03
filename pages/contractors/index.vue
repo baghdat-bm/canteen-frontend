@@ -74,9 +74,6 @@
           </tr>
         </thead>
         <tbody>
-          <!-- <tr v-if="store.contractors.length === 0">
-            <td colspan="3" class="text-center py-4 text-gray-500">{{ $t('messages.noData') }}</td>
-          </tr> -->
           <tr v-for="contractor in store.contractors" :key="contractor.id" @click="viewContractor(contractor.id)"
               class="cursor-pointer hover:bg-gray-100">
             

@@ -75,7 +75,7 @@ const localePath = useLocalePath();
 onMounted(() => {
   const id = Number(route.params.id);
   if (!isNaN(id)) {
-    store.fetchMeasurementUnit(id);
+    store.fetchRecord(id);
   }
 });
 </script>

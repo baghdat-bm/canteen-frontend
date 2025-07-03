@@ -85,6 +85,6 @@ function getUnitName(unitId: number | null): string {
 
 onMounted(() => {
   store.fetchRecords();
-  unitsStore.fetchMeasurementUnits();
+  unitsStore.fetchRecords();
 });
 </script>

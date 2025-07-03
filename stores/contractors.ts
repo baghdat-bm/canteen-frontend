@@ -1,15 +1,7 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { apiClient } from '~/utils/apiClient'
-import { useUiStore } from './ui.js'; 
-
-// Интерфейс для ответа API с пагинацией
-export interface PaginatedResponse<T> {
-    count: number; // Общее количество записей
-    next: string | null;
-    previous: string | null;
-    results: T[];
-}
+import {defineStore} from 'pinia'
+import {computed, ref} from 'vue'
+import {apiClient, type PaginatedResponse} from '~/utils/apiClient'
+import {useUiStore} from './ui.js';
 
 // Определяем интерфейс для нашего контрагента
 export interface Contractor {
@@ -89,9 +81,9 @@ export const useContractorsStore = defineStore('contractors', () => {
 
             console.log(`contractors request params: ${params}`);
 
-            // const response = await apiClient<PaginatedResponse<Contractor>>(`/contractors/?${params.toString()}`);
-            const response = await apiClient<Contractor[]>(`/contractors/?${params.toString()}`);
-            
+            const urlStr = `/contractors/?${params.toString()}`;
+            const response = await apiClient<PaginatedResponse<Contractor>>(urlStr);
+
             contractors.value = response.results;
             totalRecords.value = response.count;
 
@@ -118,8 +110,7 @@ export const useContractorsStore = defineStore('contractors', () => {
         contractor.value = null; // Очищаем предыдущее значение
 
         try {
-            const response = await apiClient<Contractor>(`/contractors/${id}/`);
-            contractor.value = response;
+            contractor.value = await apiClient<Contractor>(`/contractors/${id}/`);
         } catch (error) {
             console.error(`Failed to fetch contractor with id ${id}:`, error);
             uiStore.showNotification({
