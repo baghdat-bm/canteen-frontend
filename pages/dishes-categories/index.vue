@@ -7,8 +7,10 @@
       </NuxtLink>
     </div>
 
-    <div v-if="store.isLoading" class="text-center">
-      <p>{{ $t('loading') }}</p>
+    <!-- Индикатор загрузки -->    
+    <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
+      <BaseSpinner />
+      <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
     </div>
 
     <div v-else class="bg-white shadow-md rounded-lg overflow-hidden">
@@ -18,7 +20,7 @@
             <!-- Пустой заголовок для цветной полосы -->
             <th class="w-10 p-0 border-gray-200 bg-gray-100"></th>
             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('name') }}</th>
-            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('refs.measurement_units') }}</th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('refs.measurement_unit') }}</th>
             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('actions.operations') }}</th>
           </tr>
         </thead>
@@ -30,7 +32,7 @@
             <!-- [ИЗМЕНЕНО] Цветная полоса на всю высоту -->
             <td class="p-0 w-2" :style="{ backgroundColor: category.color }"></td>
 
-            <td class="px-5 py-4 bg-white text-sm font-medium">{{ locale === 'kz' ? category.name_kz : category.name_ru }}</td>
+            <td class="px-5 py-4 bg-white text-sm">{{ locale === 'kz' ? category.name_kz : category.name_ru }}</td>
             <td class="px-5 py-4 bg-white text-sm">{{ getUnitName(category.measurement_unit) }}</td>
             <td class="px-5 py-4 bg-white text-sm">
               <div class="flex items-center space-x-4">
@@ -53,6 +55,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import BaseSpinner from '~/components/BaseSpinner.vue';
 import { useDishCategoriesStore } from '~/stores/dishCategories';
 import { useMeasurementUnitsStore } from '~/stores/measurementUnits';
 import { Pencil, Trash2 } from 'lucide-vue-next';

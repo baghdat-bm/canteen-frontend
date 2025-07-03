@@ -3,9 +3,9 @@
     <div class="w-full max-w-2xl mx-auto">
       <h1 class="text-2xl font-bold mb-6">{{ $t('refs.editMeasurementUnit') }}</h1>
       
-      <!-- Индикатор загрузки -->
-      <div v-if="store.isLoading" class="text-center">
-        <p>{{ $t('loading') }}</p>
+      <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
+        <BaseSpinner />
+        <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
       </div>
 
       <!-- Форма в белой карточке -->
@@ -30,6 +30,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useMeasurementUnitsStore, type MeasurementUnitPayload } from '~/stores/measurementUnits';
+import BaseSpinner from '~/components/BaseSpinner.vue';
 import MeasurementUnitForm from '~/components/measurement-units/MeasurementUnitForm.vue';
 
 // --- Подключение composables ---

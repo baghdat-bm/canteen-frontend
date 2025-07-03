@@ -3,9 +3,9 @@
     <div class="w-full max-w-2xl mx-auto">
       <h1 class="text-2xl font-bold mb-6">Контрагент</h1>
 
-      <!-- Индикатор загрузки -->
-      <div v-if="pending" class="text-center">
-        <p>{{ $t('loading') }}</p>
+      <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
+        <BaseSpinner />
+        <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
       </div>
       
       <!-- Карта с данными -->
@@ -21,6 +21,12 @@
           <div class="flex items-baseline">
             <span class="w-1/3 text-gray-500 font-semibold">{{ $t('name') }}</span>
             <p class="w-2/3 text-gray-900">{{ contractor.name }}</p>
+          </div>
+          
+          <!-- БИН -->
+          <div class="flex items-baseline">
+            <span class="w-1/3 text-gray-500 font-semibold">{{ $t('contractor.bin') }}</span>
+            <p class="w-2/3 text-gray-900">{{ contractor.bin }}</p>
           </div>
 
           <!-- БИК -->
@@ -72,6 +78,7 @@ import { computed } from 'vue';
 import { useContractorsStore } from '~/stores/contractors';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import BaseSpinner from '~/components/BaseSpinner.vue';
 
 // --- Подключение composables ---
 const route = useRoute();

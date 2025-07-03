@@ -5,6 +5,10 @@
       <input type="text" id="name" v-model="formData.name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
     </div>
     <div>
+      <label for="bin" class="block text-sm font-medium text-gray-700">{{ $t('contractor.bin') }}</label>
+      <input type="text" id="bin" v-model="formData.bin" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+    </div>
+    <div>
       <label for="bik" class="block text-sm font-medium text-gray-700">{{ $t('refs.bik') }}</label>
       <input type="text" id="bik" v-model="formData.bik" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
     </div>

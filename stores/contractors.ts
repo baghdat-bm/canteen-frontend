@@ -7,6 +7,7 @@ import { useUiStore } from './ui.js';
 export interface Contractor {
     id: number;
     name: string;
+    bin: string;
     bik: string;
     bank: string;
     corr_account: string;
@@ -64,9 +65,6 @@ export const useContractorsStore = defineStore('contractors', () => {
                 duration: 7000
             });
         } finally {
-            // setTimeout(()=>{
-            //     isLoading.value = false;
-            // }, 30000);
             isLoading.value = false;
         }
     }

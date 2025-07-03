@@ -9,9 +9,9 @@
       </NuxtLink>
     </div>
 
-    <!-- Индикатор загрузки -->
-    <div v-if="store.isLoading" class="text-center">
-      <p>{{ $t('loading') }}</p>
+    <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
+      <BaseSpinner />
+      <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
     </div>
 
     <!-- Таблица с данными -->
@@ -70,6 +70,7 @@ import { useRouter } from 'vue-router';
 import { useMeasurementUnitsStore } from '~/stores/measurementUnits';
 import { useI18n } from 'vue-i18n';
 import { Pencil, Trash2 } from 'lucide-vue-next';
+import BaseSpinner from '~/components/BaseSpinner.vue';
 
 // --- Подключение composables ---
 const router = useRouter();

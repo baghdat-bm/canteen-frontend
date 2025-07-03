@@ -8,8 +8,7 @@
         {{ $t('create_new') }}
       </NuxtLink>
     </div>
-
-    <!-- Индикатор загрузки -->    
+  
     <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
       <BaseSpinner />
       <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
@@ -32,6 +31,9 @@
               {{ $t('name') }}
             </th>
             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              {{ $t('contractor.bin') }}
+            </th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
               {{ $t('actions.operations') }}
             </th>
           </tr>
@@ -47,6 +49,12 @@
             <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
               <p class="text-gray-900 whitespace-no-wrap">
                 {{ contractor.name }}
+              </p>
+            </td>
+
+            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+              <p class="text-gray-900 whitespace-no-wrap">
+                {{ contractor.bin }}
               </p>
             </td>
 
