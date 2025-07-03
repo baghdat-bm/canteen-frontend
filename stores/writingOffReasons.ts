@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { apiClient } from '~/utils/apiClient';
-import { useUiStore } from './ui.js'; 
+import {defineStore} from 'pinia';
+import {ref} from 'vue';
+import {apiClient, type PaginatedResponse} from '~/utils/apiClient';
+import {useUiStore} from './ui.js';
 
 // Определяем интерфейс для объекта записи
 export interface WritingOffReason {
@@ -19,23 +19,24 @@ export type WritingOffReasonPayload = Omit<WritingOffReason, 'id'>;
 
 export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => {
     // --- State ---
-    // Список всех записей
     const writingOffReasons = ref<WritingOffReason[]>([]);
-    // Одна выбранная запись
     const writingOffReason = ref<WritingOffReason | null>(null);
-    // Время последнего запроса для кэширования
-    const lastFetched = ref<Date | null>(null);
-    // Состояние загрузки
     const isLoading = ref(false);
 
+    // --- Состояние для пагинации и поиска ---
+    const totalRecords = ref(0);
+    const pageSize = ref(30); // 30 записей на страницу
+    const currentPage = ref(1);
+    const searchQuery = ref({
+        name_kz: '',
+        name_ru: '',
+        id: ''
+    });
+
     // --- Getters ---
-    // Проверяет, нужно ли загружать данные с сервера (кэш 15 минут)
-    const shouldFetch = computed(() => {
-        if (!lastFetched.value) {
-            return true;
-        }
-        const fifteenMinutes = 15 * 60 * 1000;
-        return (new Date().getTime() - lastFetched.value.getTime()) > fifteenMinutes;
+    const totalPages = computed(() => {
+        if (totalRecords.value === 0) return 1;
+        return Math.ceil(totalRecords.value / pageSize.value);
     });
 
     // --- Actions ---
@@ -43,25 +44,48 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
     function reset() {
         writingOffReasons.value = [];
         writingOffReason.value = null;
-        lastFetched.value = null;
         isLoading.value = false;
+        totalRecords.value = 0;
+        currentPage.value = 1;
+        searchQuery.value = { name_kz: '', name_ru: '', id: '' };
     }
 
     /**
      * Получение списка всех записей с сервера
-     * @param {boolean} force - Принудительно обновить данные, игнорируя кэш
+     * @param {number} page - Номер страницы для загрузки
      */
-    async function fetchRecords(force = false) {
-        const uiStore = useUiStore(); 
-        if (!shouldFetch.value && !force) {
-            return;
-        }
-
+    async function fetchRecords(page: number = 1) {
+        const uiStore = useUiStore();
         isLoading.value = true;
+        currentPage.value = page;
+
         try {
-            const response = await apiClient<WritingOffReason[]>('/writing-off-reasons/');
-            writingOffReasons.value = response;
-            lastFetched.value = new Date();
+            // Используем URLSearchParams для удобного формирования query-параметров
+            const params = new URLSearchParams();
+
+            // Добавляем параметры поиска, если они не пустые
+            if (searchQuery.value.name_kz) {
+                params.append('name_kz', searchQuery.value.name_kz);
+            }
+            if (searchQuery.value.name_ru) {
+                params.append('name_ru', searchQuery.value.name_ru);
+            }
+            if (searchQuery.value.id) {
+                params.append('id', searchQuery.value.id);
+            }
+
+            if (params.size == 0) {
+                params.append('page', page.toString());
+                params.append('page_size', pageSize.value.toString());
+            }
+
+            console.log(`writing-off-reasons request params: ${params}`);
+
+            const urlStr = `/writing-off-reasons/?${params.toString()}`;
+            const response = await apiClient<PaginatedResponse<WritingOffReason>>(urlStr);
+            writingOffReasons.value = response.results;
+            totalRecords.value = response.count;
+
         } catch (error) {            
             const errText = 'Failed to fetch writing-off-reasons';
             uiStore.showNotification({
@@ -83,8 +107,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
         const uiStore = useUiStore(); 
         isLoading.value = true;
         try {
-            const response = await apiClient<WritingOffReason>(`/writing-off-reasons/${id}/`);
-            writingOffReason.value = response;
+            writingOffReason.value = await apiClient<WritingOffReason>(`/writing-off-reasons/${id}/`);
         } catch (error) {            
             writingOffReason.value = null;
             const errText = `Failed to fetch writing-off-reasons with id ${id}`;
@@ -110,8 +133,6 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
                 method: 'POST',
                 body: payload,
             });
-            // Инвалидация кэша после создания
-            lastFetched.value = null;
         } catch (error) {            
             const errText = 'Failed to create writing-off-reasons';
             uiStore.showNotification({
@@ -135,8 +156,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
                 method: 'PUT',
                 body: payload,
             });
-            // Инвалидация кэша
-            lastFetched.value = null;
+
         } catch (error) {
             const errText = `Failed to update writing-off-reasons with id ${id}`;
             uiStore.showNotification({
@@ -162,10 +182,8 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
             await apiClient(`/writing-off-reasons/${id}/`, {
                 method: 'DELETE',
             });
-            // Инвалидация кэша и обновление списка
-            lastFetched.value = null;
-            await fetchRecords(true); // Принудительное обновление
 
+            writingOffReasons.value = writingOffReasons.value.filter(c => c.id !== id);
             uiStore.showNotification({
                 message: t('writingOffReason.itemDeleted'),
                 type: 'success',
@@ -185,8 +203,11 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
         writingOffReasons,
         writingOffReason,
         isLoading,
-        lastFetched,
-        shouldFetch,
+        totalRecords,
+        currentPage,
+        pageSize,
+        totalPages,
+        searchQuery,
         fetchRecords,
         fetchRecord,
         createRecord,
