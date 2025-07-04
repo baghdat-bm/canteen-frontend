@@ -1,34 +1,35 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { apiClient, type PaginatedResponse } from '~/utils/apiClient';
-import { useUiStore } from './ui.js'; 
+import {defineStore} from 'pinia';
+import {computed, ref} from 'vue';
+import {apiClient, type PaginatedResponse} from '~/utils/apiClient';
+import {useUiStore} from './ui.js';
 
 // Интерфейс для объекта категории блюд
-export interface DishCategory {
+export interface Dish {
     id: number;
     name_kz: string;
     name_ru: string;
     name_en: string;
-    logo: string | null;
-    color: string;
-    measurement_unit: number;
+    category: number;
+    logo: string;
+    barcode: string;
+    measurement_unit?: number | null;
 }
 
 // Тип для данных, отправляемых на сервер (без id)
-// `logo` может быть File или null (если не меняется)
-export interface DishCategoryPayload {
+export interface DishPayload {
     name_kz: string;
     name_ru: string;
     name_en: string;
+    category: number | null;
     logo?: File | null;
-    color: string;
+    barcode?: string | null;
     measurement_unit: number | null;
 }
 
-export const useDishCategoriesStore = defineStore('dishCategories', () => {
+export const useDishStore = defineStore('dishes', () => {
     // --- State ---
-    const dishCategories = ref<DishCategory[]>([]);
-    const dishCategory = ref<DishCategory | null>(null);
+    const dishes = ref<Dish[]>([]);
+    const dish = ref<Dish | null>(null);
     const isLoading = ref(false);
     
     // --- Состояние для пагинации и поиска ---
@@ -38,6 +39,8 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
     const searchQuery = ref({
         name_kz: '',
         name_ru: '',
+        barcode: '',
+        category: '',
         id: ''
     });
 
@@ -50,12 +53,12 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
     // --- Actions ---
     
     function reset() {
-        dishCategories.value = [];
-        dishCategory.value = null;        
+        dishes.value = [];
+        dish.value = null;
         isLoading.value = false;
         totalRecords.value = 0;
         currentPage.value = 1;
-        searchQuery.value = { name_kz: '', name_ru: '', id: '' };
+        searchQuery.value = { name_kz: '', name_ru: '', barcode: '', category: '', id: '' };
     }
 
     /**
@@ -77,6 +80,12 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
             if (searchQuery.value.name_ru) {
                 params.append('name_ru', searchQuery.value.name_ru);
             }
+            if (searchQuery.value.barcode) {
+                params.append('barcode', searchQuery.value.barcode);
+            }
+            if (searchQuery.value.category) {
+                params.append('category', searchQuery.value.category);
+            }
             if (searchQuery.value.id) {
                 params.append('id', searchQuery.value.id);
             }
@@ -86,15 +95,15 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
                 params.append('page_size', pageSize.value.toString());
             }
 
-            console.log(`dishes-categories request params: ${params}`);
+            console.log(`dishes request params: ${params}`);
 
-            const urlStr = `/dishes-categories/?${params.toString()}`;            
-            const response = await apiClient<PaginatedResponse<DishCategory>>(urlStr);
-            dishCategories.value = response.results;
+            const urlStr = `/dishes/?${params.toString()}`;
+            const response = await apiClient<PaginatedResponse<Dish>>(urlStr);
+            dishes.value = response.results;
             totalRecords.value = response.count;
 
         } catch (error) {            
-            const errText = 'Failed to fetch dish categories';
+            const errText = 'Failed to fetch dishes';
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
@@ -110,11 +119,10 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         const uiStore = useUiStore(); 
         isLoading.value = true;
         try {
-            const response = await apiClient<DishCategory>(`/dishes-categories/${id}/`);
-            dishCategory.value = response;
+            dish.value = await apiClient<Dish>(`/dishes/${id}/`);
         } catch (error) {            
-            dishCategory.value = null;
-            const errText = `Failed to fetch dish category with id ${id}`;
+            dish.value = null;
+            const errText = `Failed to fetch dish with id ${id}`;
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
@@ -129,14 +137,17 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
     /**
      * Преобразует объект payload в FormData для отправки файлов
      */
-    function createFormData(payload: DishCategoryPayload): FormData {
+    function createFormData(payload: DishPayload): FormData {
         const formData = new FormData();
         formData.append('name_kz', payload.name_kz);
         formData.append('name_ru', payload.name_ru);
         formData.append('name_en', payload.name_en);
-        formData.append('color', payload.color);
+        formData.append('barcode', payload.barcode ? payload.barcode : '');
         if (payload.measurement_unit) {
             formData.append('measurement_unit', String(payload.measurement_unit));
+        }
+        if (payload.category) {
+            formData.append('category', String(payload.category));
         }
         // Добавляем файл, только если он был выбран
         if (payload.logo instanceof File) {
@@ -145,17 +156,17 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         return formData;
     }
 
-    async function createRecord(payload: DishCategoryPayload) {
+    async function createRecord(payload: DishPayload) {
         const uiStore = useUiStore(); 
         const formData = createFormData(payload);
         try {
-            await apiClient('/dishes-categories/', {
+            await apiClient('/dishes/', {
                 method: 'POST',
                 body: formData,
             });
 
         } catch (error) {            
-            const errText = 'Failed to create dish category';
+            const errText = 'Failed to create dish';
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
@@ -165,18 +176,18 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         }
     }
 
-    async function updateRecord(id: number, payload: DishCategoryPayload) {
+    async function updateRecord(id: number, payload: DishPayload) {
         const uiStore = useUiStore(); 
         const formData = createFormData(payload);
         try {
             // Используем PATCH, чтобы можно было не отправлять файл, если он не менялся
-            await apiClient(`/dishes-categories/${id}/`, {
+            await apiClient(`/dishes/${id}/`, {
                 method: 'PATCH', 
                 body: formData,
             });
 
         } catch (error) {            
-            const errText = `Failed to update dish category with id ${id}`;
+            const errText = `Failed to update dish with id ${id}`;
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
@@ -197,20 +208,20 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         const { t } = nuxtApp.$i18n;
 
         try {
-            await apiClient(`/dishes-categories/${id}/`, {
+            await apiClient(`/dishes/${id}/`, {
                 method: 'DELETE',
             });
 
-            dishCategories.value = dishCategories.value.filter(c => c.id !== id);
+            dishes.value = dishes.value.filter(c => c.id !== id);
             uiStore.showNotification({
-                message: t('dishCategory.itemDeleted'),
+                message: t('dish.itemDeleted'),
                 type: 'success',
             });            
         } catch (error) {            
-            console.error(`Failed to delete dish category with id ${id}:`, error);
+            console.error(`Failed to delete dish with id ${id}:`, error);
 
             uiStore.showNotification({
-                message: t('dishCategory.errorOnDelete'),
+                message: t('dish.errorOnDelete'),
                 type: 'error',
                 duration: 7000
             });
@@ -218,8 +229,8 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
     }
 
     return {
-        dishCategories,
-        dishCategory,
+        dishes,
+        dish,
         isLoading,
         totalRecords,
         currentPage,
