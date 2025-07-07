@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-1">
+  <div class="container mx-auto">
     <!-- Заголовок страницы и кнопка создания -->
     <div class="flex justify-between items-center mb-2">
       <h1 class="text-2xl font-bold">{{ $t('refs.writingOffReasons') }}</h1>
@@ -61,36 +61,33 @@
       <table class="min-w-full leading-normal">
         <thead>
           <tr>
-            <th
-              class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-16">
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-16">
               ID
             </th>
-            <th
-              class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
               {{ $t('name') }}
             </th>
-            <th
-              class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
               {{ $t('actions.operations') }}
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="item in store.writingOffReasons" :key="item.id" @click="viewRecord(item.id)"
-            class="cursor-pointer hover:bg-gray-100">
+            class="cursor-pointer hover:bg-gray-100 transition-colors">
 
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               {{ item.id }}
             </td>
 
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               <!-- Отображение названия в зависимости от текущей локали -->
               <p class="text-gray-900 whitespace-no-wrap">
                 {{ locale === 'kz' ? item.name_kz : item.name_ru }}
               </p>
             </td>
 
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               <!-- Кнопки действий с иконками -->
               <div class="flex items-center space-x-4">
                 <NuxtLink :to="localePath(`/writing-off-reasons/${item.id}/edit`)" @click.stop

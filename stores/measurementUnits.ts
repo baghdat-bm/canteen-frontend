@@ -52,8 +52,9 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
     /**
      * Получение списка всех единиц измерения с сервера с учетом пагинации и поиска
      * @param {number} page - Номер страницы для загрузки
+     * @param language - текущий язык
      */
-    async function fetchRecords(page: number = 1) {
+    async function fetchRecords(page: number = 1, language?: string) {
         const uiStore = useUiStore();
         isLoading.value = true;
         currentPage.value = page;
@@ -61,6 +62,10 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
         try {
             // Используем URLSearchParams для удобного формирования query-параметров
             const params = new URLSearchParams();
+
+            // Сортировка
+            if (language)
+                params.append('ordering', `name_${language}`);
 
             // Добавляем параметры поиска, если они не пустые
             if (searchQuery.value.name_kz) {

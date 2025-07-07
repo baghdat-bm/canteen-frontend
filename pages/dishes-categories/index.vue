@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-1">
+  <div class="container mx-auto">
     <div class="flex justify-between items-center mb-2">
       <h1 class="text-2xl font-bold">{{ $t('dishCategory.itemList') }}</h1>
       <NuxtLink :to="localePath('/dishes-categories/create')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
@@ -70,14 +70,14 @@
         <tbody>
           <!-- [ИЗМЕНЕНО] Обертка для применения border-collapse -->
           <tr v-for="category in store.dishCategories" :key="category.id" @click="viewRecord(category.id)"
-              class="cursor-pointer hover:bg-gray-100 border-b border-gray-200">
+              class="cursor-pointer hover:bg-gray-100 transition-colors border-b border-gray-200">
 
             <!-- [ИЗМЕНЕНО] Цветная полоса на всю высоту -->
             <td class="p-0 w-2" :style="{ backgroundColor: category.color }"></td>
 
-            <td class="px-5 py-4 bg-white text-sm">{{ locale === 'kz' ? category.name_kz : category.name_ru }}</td>
-            <td class="px-5 py-4 bg-white text-sm">{{ getUnitName(category.measurement_unit) }}</td>
-            <td class="px-5 py-4 bg-white text-sm">
+            <td class="px-5 py-4 text-sm">{{ locale === 'kz' ? category.name_kz : category.name_ru }}</td>
+            <td class="px-5 py-4 text-sm">{{ getUnitName(category.measurement_unit) }}</td>
+            <td class="px-5 py-4 text-sm">
               <div class="flex items-center space-x-4">
                 <NuxtLink :to="localePath(`/dishes-categories/${category.id}/edit`)" @click.stop class="text-indigo-600 hover:text-indigo-900">
                   <Pencil class="w-5 h-5"/>
@@ -178,7 +178,7 @@ function handleSearch() {
   store.searchQuery.name_ru = localSearchQuery.value.name_ru;
   store.searchQuery.id = localSearchQuery.value.id;
   // Запускаем поиск с первой страницы
-  store.fetchRecords(1);
+  store.fetchRecords(1, locale.value);
 }
 
 // Функция для сброса поиска
@@ -192,7 +192,7 @@ function goToPage(page: number) {
   if (page < 1 || page > store.totalPages) {
     return;
   }
-  store.fetchRecords(page);
+  store.fetchRecords(page, locale.value);
 }
 
 function viewRecord(id: number) {
@@ -213,7 +213,7 @@ function getUnitName(unitId: number | null): string {
 }
 
 onMounted(() => {
-  store.fetchRecords(store.currentPage);
+  store.fetchRecords(store.currentPage, locale.value);
   unitsStore.fetchRecords();
 });
 </script>

@@ -63,7 +63,7 @@ export const useDishStore = defineStore('dishes', () => {
         searchQuery.value = { name_kz: '', name_ru: '', barcode: '', category: '', id: '' };
     }
 
-    async function fetchDishes(categoryId?: number) {
+    async function fetchDishes(categoryId?: number, language?: string) {
         isLoading.value = true;
         error.value = '';
         const uiStore = useUiStore();
@@ -71,7 +71,10 @@ export const useDishStore = defineStore('dishes', () => {
         try {
             // Формируем URL с параметром фильтрации, если он передан
             const params = new URLSearchParams();
-            if (categoryId) if (categoryId) params.append('category', categoryId.toString());
+            if (language)
+                params.append('ordering', `name_${language}`);
+            if (categoryId)
+                params.append('category', categoryId.toString());
 
             console.log(`dishes request params: ${params}`);
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-1">
+  <div class="container mx-auto">
     <!-- Заголовок страницы и кнопка создания -->
     <div class="flex justify-between items-center mb-2">
       <h1 class="text-2xl font-bold">{{ $t('refs.measurement_units') }}</h1>
@@ -75,20 +75,20 @@
         </thead>
         <tbody>
           <tr v-for="unit in store.measurementUnits" :key="unit.id" @click="viewUnit(unit.id)"
-              class="cursor-pointer hover:bg-gray-100">
+              class="cursor-pointer hover:bg-gray-100 transition-colors">
             
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               {{ unit.id }}
             </td>
             
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               <!-- Отображение названия в зависимости от текущей локали -->
               <p class="text-gray-900 whitespace-no-wrap">
                 {{ locale === 'kz' ? unit.name_kz : unit.name_ru }}
               </p>
             </td>
 
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               <!-- Кнопки действий с иконками -->
               <div class="flex items-center space-x-4">
                 <NuxtLink :to="localePath(`/measurement-units/${unit.id}/edit`)" @click.stop
@@ -189,7 +189,7 @@ function handleSearch() {
   store.searchQuery.name_ru = localSearchQuery.value.name_ru;
   store.searchQuery.id = localSearchQuery.value.id;
   // Запускаем поиск с первой страницы
-  store.fetchRecords(1);
+  store.fetchRecords(1, locale.value);
 }
 
 // Функция для сброса поиска
@@ -203,7 +203,7 @@ function goToPage(page: number) {
   if (page < 1 || page > store.totalPages) {
     return;
   }
-  store.fetchRecords(page);
+  store.fetchRecords(page, locale.value);
 }
 
 /**
@@ -226,6 +226,6 @@ const confirmDelete = (id: number) => {
 
 // --- Хуки жизненного цикла ---
 onMounted(() => {
-  store.fetchRecords(store.currentPage);
+  store.fetchRecords(store.currentPage, locale.value);
 });
 </script>

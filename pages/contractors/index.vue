@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-1">
+  <div class="container mx-auto">
     <!-- Заголовок страницы и кнопка создания -->
     <div class="flex justify-between items-center mb-2">
       <h1 class="text-2xl font-bold">{{ $t('contractors') }}</h1>
@@ -75,25 +75,25 @@
         </thead>
         <tbody>
           <tr v-for="contractor in store.contractors" :key="contractor.id" @click="viewContractor(contractor.id)"
-              class="cursor-pointer hover:bg-gray-100">
+              class="cursor-pointer hover:bg-gray-100 transition-colors">
             
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               {{ contractor.id }}
             </td>
             
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               <p class="text-gray-900 whitespace-no-wrap">
                 {{ contractor.name }}
               </p>
             </td>
 
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               <p class="text-gray-900 whitespace-no-wrap">
                 {{ contractor.bin }}
               </p>
             </td>
 
-            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+            <td class="px-5 py-5 border-b border-gray-200 text-sm">
               <div class="flex items-center space-x-4">
                 <NuxtLink :to="localePath(`/contractors/${contractor.id}/edit`)" @click.stop
                           class="text-indigo-600 hover:text-indigo-900">

@@ -63,8 +63,9 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
     /**
      * Получение списка всех записей с сервера с учетом пагинации и поиска
      * @param {number} page - Номер страницы для загрузки
+     * @param language - Текущий язык
      */
-    async function fetchRecords(page: number = 1) {
+    async function fetchRecords(page: number = 1, language?: string) {
         const uiStore = useUiStore();
         isLoading.value = true;
         currentPage.value = page;
@@ -84,10 +85,12 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
                 params.append('id', searchQuery.value.id);
             }
 
-            if (params.size == 0) {
-                params.append('page', page.toString());
-                params.append('page_size', pageSize.value.toString());
-            }
+            if (language)
+                params.append('ordering', `name_${language}`);
+
+            params.append('page', page.toString());
+            params.append('page_size', pageSize.value.toString());
+
 
             console.log(`dishes-categories request params: ${params}`);
 
