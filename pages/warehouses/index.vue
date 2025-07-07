@@ -1,7 +1,7 @@
 <template>
-  <div class="container mx-auto p-4">
+  <div class="container mx-auto p-1">
     <!-- Заголовок страницы и кнопка создания -->
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-2">
       <h1 class="text-2xl font-bold">{{ $t('warehouse.itemList') }}</h1>
       <NuxtLink :to="localePath('/warehouses/create')"
         class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">

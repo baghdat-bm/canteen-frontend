@@ -22,8 +22,7 @@
           <div class="flex items-baseline"><span class="w-1/3 text-gray-500 font-semibold">{{ $t('name_en') }}</span>
             <p class="w-2/3 text-gray-900">{{ store.dishCategory.name_en }}</p>
           </div>
-          <div class="flex items-center"><span class="w-1/3 text-gray-500 font-semibold">{{ $t('refs.measurement_units')
-              }}</span>
+          <div class="flex items-center"><span class="w-1/3 text-gray-500 font-semibold">{{ $t('refs.measurement_unit') }}</span>
             <p class="w-2/3 text-gray-900">{{ getUnitName(store.dishCategory.measurement_unit) }}</p>
           </div>
           <div class="flex items-center"><span class="w-1/3 text-gray-500 font-semibold">{{ $t('refs.color') }}</span>

@@ -89,7 +89,7 @@
 import { ref, watch } from 'vue';
 import { 
   Home, BarChart3, LogOut, CookingPot, FolderKanban, ChevronDown, 
-  Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse
+  Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse, Salad
 } from 'lucide-vue-next';
 import { useUiStore } from '~/stores/ui';
 import { useAuthStore } from '~/stores/auth';
@@ -108,8 +108,9 @@ const directoryLinks = ref([
   { name: 'contractors', path: '/contractors', labelKey: 'contractors', icon: Building2 },
   { name: 'measurement-units', path: '/measurement-units', labelKey: 'refs.measurement_units', icon: Ruler },
   { name: 'writing-off-reasons', path: '/writing-off-reasons', labelKey: 'refs.writingOffReasons', icon: BookMinus },
-  { name: 'dishes-categories', path: '/dishes-categories', labelKey: 'dishCategory.itemList', icon: UtensilsCrossed },
   { name: 'warehouses', path: '/warehouses', labelKey: 'warehouse.itemList', icon: Warehouse },
+  { name: 'dishes-categories', path: '/dishes-categories', labelKey: 'dishCategory.itemList', icon: UtensilsCrossed },
+  { name: 'dishes', path: '/dishes', labelKey: 'dish.itemList', icon: Salad },
 ]);
 
 const directoryRoutes = directoryLinks.value.map(l => l.name);

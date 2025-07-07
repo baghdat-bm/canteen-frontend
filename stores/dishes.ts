@@ -23,7 +23,7 @@ export interface DishPayload {
     category: number | null;
     logo?: File | null;
     barcode?: string | null;
-    measurement_unit: number | null;
+    measurement_unit: number | null | undefined;
 }
 
 export const useDishStore = defineStore('dishes', () => {
@@ -97,7 +97,7 @@ export const useDishStore = defineStore('dishes', () => {
 
             console.log(`dishes request params: ${params}`);
 
-            const urlStr = `/dishes/?${params.toString()}`;
+            const urlStr = `/dishes/?${params.toString()}`;            
             const response = await apiClient<PaginatedResponse<Dish>>(urlStr);
             dishes.value = response.results;
             totalRecords.value = response.count;

@@ -1,6 +1,6 @@
 <template>
-  <div class="container mx-auto p-4">
-    <div class="flex justify-between items-center mb-6">
+  <div class="container mx-auto p-1">
+    <div class="flex justify-between items-center mb-2">
       <h1 class="text-2xl font-bold">{{ $t('dishCategory.itemList') }}</h1>
       <NuxtLink :to="localePath('/dishes-categories/create')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
         {{ $t('create_new') }}
@@ -8,7 +8,7 @@
     </div>
 
     <!-- Форма поиска -->
-    <div class="p-4 bg-white rounded-lg shadow mb-4">
+    <div class="p-2 bg-white rounded-lg shadow mb-4">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <input
             type="text"
