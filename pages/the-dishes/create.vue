@@ -34,7 +34,7 @@ async function handleSubmit(formData: DishPayload) {
   isSubmitting.value = true;
   try {
     await store.createRecord(formData);
-    await navigateTo(localePath('/dishes'));
+    await navigateTo(localePath('/the-dishes'));
   } catch (error) {
     alert(t('message.couldNotCreate'));
   } finally {

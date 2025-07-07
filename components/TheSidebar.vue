@@ -110,7 +110,7 @@ const directoryLinks = ref([
   { name: 'writing-off-reasons', path: '/writing-off-reasons', labelKey: 'refs.writingOffReasons', icon: BookMinus },
   { name: 'warehouses', path: '/warehouses', labelKey: 'warehouse.itemList', icon: Warehouse },
   { name: 'dishes-categories', path: '/dishes-categories', labelKey: 'dishCategory.itemList', icon: UtensilsCrossed },
-  { name: 'dishes', path: '/dishes', labelKey: 'dish.itemList', icon: Salad },
+  { name: 'the-dishes', path: '/the-dishes', labelKey: 'dish.itemList', icon: Salad },
 ]);
 
 const directoryRoutes = directoryLinks.value.map(l => l.name);

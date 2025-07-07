@@ -38,10 +38,10 @@
         </div>
 
         <div class="mt-8 flex justify-end space-x-4">
-          <NuxtLink :to="localePath('/dishes')"
+          <NuxtLink :to="localePath('/the-dishes')"
             class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">{{ $t('navigation.backToList') }}
           </NuxtLink>
-          <NuxtLink :to="localePath(`/dishes/${route.params.id}/edit`)"
+          <NuxtLink :to="localePath(`/the-dishes/${route.params.id}/edit`)"
             class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">{{ $t('actions.edit') }}
           </NuxtLink>
         </div>

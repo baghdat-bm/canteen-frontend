@@ -44,7 +44,7 @@ async function handleSubmit(formData: DishPayload) {
   isSubmitting.value = true;
   try {
     await store.updateRecord(id, formData);
-    await navigateTo(localePath('/dishes'));
+    await navigateTo(localePath('/the-dishes'));
   } catch (error) {
     alert(t('dish.couldntUpdateItem'));
   } finally {

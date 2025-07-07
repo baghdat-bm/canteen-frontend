@@ -30,6 +30,7 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
     const dishCategories = ref<DishCategory[]>([]);
     const dishCategory = ref<DishCategory | null>(null);
     const isLoading = ref(false);
+    const error = ref( '');
     
     // --- Состояние для пагинации и поиска ---
     const totalRecords = ref(0);
@@ -55,6 +56,7 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         isLoading.value = false;
         totalRecords.value = 0;
         currentPage.value = 1;
+        error.value = '';
         searchQuery.value = { name_kz: '', name_ru: '', id: '' };
     }
 
@@ -66,6 +68,7 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         const uiStore = useUiStore();
         isLoading.value = true;
         currentPage.value = page;
+        error.value = '';
 
         try {
             const params = new URLSearchParams();
@@ -93,14 +96,15 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
             dishCategories.value = response.results;
             totalRecords.value = response.count;
 
-        } catch (error) {            
+        } catch (err) {
             const errText = 'Failed to fetch dish categories';
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error);
+            console.error(errText, err);
+            error.value = errText;
         } finally {
             isLoading.value = false;
         }

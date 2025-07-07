@@ -31,6 +31,7 @@ export const useDishStore = defineStore('dishes', () => {
     const dishes = ref<Dish[]>([]);
     const dish = ref<Dish | null>(null);
     const isLoading = ref(false);
+    const error = ref( '');
     
     // --- Состояние для пагинации и поиска ---
     const totalRecords = ref(0);
@@ -58,7 +59,36 @@ export const useDishStore = defineStore('dishes', () => {
         isLoading.value = false;
         totalRecords.value = 0;
         currentPage.value = 1;
+        error.value = '';
         searchQuery.value = { name_kz: '', name_ru: '', barcode: '', category: '', id: '' };
+    }
+
+    async function fetchDishes(categoryId?: number) {
+        isLoading.value = true;
+        error.value = '';
+        const uiStore = useUiStore();
+
+        try {
+            // Формируем URL с параметром фильтрации, если он передан
+            const params = new URLSearchParams();
+            if (categoryId) if (categoryId) params.append('category', categoryId.toString());
+
+            console.log(`dishes request params: ${params}`);
+
+            const urlStr = `/dishes/?${params.toString()}`;
+            const response = await apiClient<PaginatedResponse<Dish>>(urlStr);
+            dishes.value = response.results;
+        } catch (e) {
+            error.value = 'Failed to fetch the-dishes';
+            uiStore.showNotification({
+                message: error.value,
+                type: 'error',
+                duration: 7000
+            });
+            console.error(error.value, error);
+        } finally {
+            isLoading.value = false;
+        }
     }
 
     /**
@@ -69,6 +99,7 @@ export const useDishStore = defineStore('dishes', () => {
         const uiStore = useUiStore();
         isLoading.value = true;
         currentPage.value = page;
+        error.value = '';
 
         try {
             const params = new URLSearchParams();
@@ -102,14 +133,15 @@ export const useDishStore = defineStore('dishes', () => {
             dishes.value = response.results;
             totalRecords.value = response.count;
 
-        } catch (error) {            
-            const errText = 'Failed to fetch dishes';
+        } catch (err) {
+            const errText = 'Failed to fetch the-dishes';
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error);
+            console.error(errText, err);
+            error.value = errText;
         } finally {
             isLoading.value = false;
         }
@@ -237,6 +269,7 @@ export const useDishStore = defineStore('dishes', () => {
         pageSize,
         totalPages,
         searchQuery,
+        fetchDishes,
         fetchRecords,
         fetchRecord,
         createRecord,

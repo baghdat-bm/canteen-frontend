@@ -71,7 +71,7 @@
           <!-- [ИЗМЕНЕНО] Обертка для применения border-collapse -->
           <tr v-for="category in store.dishCategories" :key="category.id" @click="viewRecord(category.id)"
               class="cursor-pointer hover:bg-gray-100 border-b border-gray-200">
-            
+
             <!-- [ИЗМЕНЕНО] Цветная полоса на всю высоту -->
             <td class="p-0 w-2" :style="{ backgroundColor: category.color }"></td>
 
