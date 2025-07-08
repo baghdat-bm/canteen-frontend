@@ -28,8 +28,7 @@ export async function apiClient<T>(url: string, options: FetchOptions = {}) {
     try {
         return await $fetch<T>(url, customOptions);
     } catch (error: any) {
-        // --- ↓↓↓ ИЗМЕНЕНИЕ ТОЛЬКО В ЭТОЙ СТРОКЕ ↓↓↓ ---
-        // Теперь мы проверяем, является ли ошибка 401 ИЛИ 403
+        // Проверяем, является ли ошибка 401 ИЛИ 403
         if (error.response?.status === 401 || error.response?.status === 403) {
             console.log(`Поймали ошибку ${error.response.status}. Пытаемся обновить токен...`);
             

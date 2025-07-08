@@ -170,6 +170,7 @@ export const useWarehouseStore = defineStore('warehouses', () => {
                 message: t('warehouse.itemDeleted'),
                 type: 'success'
             });
+            return true;
         } catch (error) {
             const errText = t('warehouse.errorOnDelete');
             console.error(errText, error);
@@ -178,6 +179,7 @@ export const useWarehouseStore = defineStore('warehouses', () => {
                 type: 'error',
                 duration: 7000
             });
+            return false;
         }
     }
 

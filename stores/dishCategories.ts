@@ -212,7 +212,8 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
             uiStore.showNotification({
                 message: t('dishCategory.itemDeleted'),
                 type: 'success',
-            });            
+            });
+            return true;
         } catch (error) {            
             console.error(`Failed to delete dish category with id ${id}:`, error);
 
@@ -221,6 +222,7 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
                 type: 'error',
                 duration: 7000
             });
+            return false;
         }
     }
 

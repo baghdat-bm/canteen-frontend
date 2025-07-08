@@ -72,12 +72,13 @@
       </div>
     </div>
 
+    <!-- Диалоговое окно подтверждения удаления-->
     <div class="p-4">
       <ConfirmDialog v-model="showDeleteModal"
                      :title="$t('captions.confirmDelete')"
                      :message="$t('dish.confirmDelete')"
                      :confirm-button-text="$t('actions.delete')"
-                     @confirm="deleteDishConfirmed"/>
+                     @confirm="deleteItemConfirmed"/>
     </div>
 
   </div>
@@ -106,7 +107,7 @@ const {t, locale} = useI18n();
 
 const dishGroups = ref<DishGroup[]>([]);
 const showDeleteModal = ref(false);
-const dishToDelete = ref<Dish | null>(null);
+const itemToDelete = ref<Dish | null>(null);
 
 onMounted(async () => {
   categoriesStore.pageSize = 999;
@@ -134,17 +135,19 @@ const toggleCategory = async (categoryGroup: DishGroup) => {
   }
 };
 
-const confirmDelete = (dish: Dish) => {
-  dishToDelete.value = dish;
+const confirmDelete = (item: Dish) => {
+  itemToDelete.value = item;
   showDeleteModal.value = true;
 };
 
-const deleteDishConfirmed = async () => {
-  if (dishToDelete.value) {
-    await dishesStore.deleteRecord(dishToDelete.value.id);
-    const group = dishGroups.value.find(g => g.category.id === dishToDelete.value?.category);
-    if (group) {
-      group.dishes = group.dishes.filter(d => d.id !== dishToDelete.value?.id);
+const deleteItemConfirmed = async () => {
+  if (itemToDelete.value) {
+    const success = await dishesStore.deleteRecord(itemToDelete.value.id);
+    if (success) {
+      const group = dishGroups.value.find(g => g.category.id === itemToDelete.value?.category);
+      if (group) {
+        group.dishes = group.dishes.filter(d => d.id !== itemToDelete.value?.id);
+      }
     }
   }
 };

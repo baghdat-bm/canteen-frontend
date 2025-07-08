@@ -193,6 +193,7 @@ export const useContractorsStore = defineStore('contractors', () => {
                 message: t('contractor.itemDeleted'),
                 type: 'success',
             });
+            return true;
         } catch (error) {
             console.error(`Ошибка при удалении контрагента ${id}:`, error);
             uiStore.showNotification({
@@ -200,6 +201,7 @@ export const useContractorsStore = defineStore('contractors', () => {
                 type: 'error',
                 duration: 7000
             });
+            return false;
         }
     }
 

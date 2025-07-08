@@ -94,7 +94,7 @@
                   class="text-indigo-600 hover:text-indigo-900">
                   <Pencil class="w-5 h-5" />
                 </NuxtLink>
-                <button @click.stop="confirmDelete(item.id)" class="text-red-600 hover:text-red-900">
+                <button @click.stop="confirmDelete(item)" class="text-red-600 hover:text-red-900">
                   <Trash2 class="w-5 h-5" />
                 </button>
               </div>
@@ -104,51 +104,45 @@
       </table>
 
       <!-- Компонент пагинации -->
-      <div v-if="store.totalRecords > 0" class="p-4 flex items-center justify-between border-t">
-        <p class="text-sm text-gray-700">
-          {{ $t('pagination.showing', {
-          from: (store.currentPage - 1) * store.pageSize + 1,
-          to: Math.min(store.currentPage * store.pageSize, store.totalRecords),
-          total: store.totalRecords
-        })
-          }}
-        </p>
-        <div class="flex space-x-1">
-          <button
-              @click="goToPage(store.currentPage - 1)"
-              :disabled="store.currentPage === 1"
-              class="px-3 py-1 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ $t('pagination.prev') }}
-          </button>
-          <span class="px-3 py-1 text-sm">
-            {{ $t('pagination.page', { current: store.currentPage, total: store.totalPages }) }}
-          </span>
-          <button
-              @click="goToPage(store.currentPage + 1)"
-              :disabled="store.currentPage >= store.totalPages"
-              class="px-3 py-1 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ $t('pagination.next') }}
-          </button>
-        </div>
-      </div>
+      <BasePagination
+          :total-records="store.totalRecords"
+          :page-size="store.pageSize"
+          :current-page="store.currentPage"
+          :total-pages="store.totalPages"
+          :is-loading="store.isLoading"
+          @page-changed="goToPage"
+      />
 
+    </div>
+
+    <!-- Диалоговое окно подтверждения удаления-->
+    <div class="p-4">
+      <ConfirmDialog v-model="showDeleteModal"
+                     :title="$t('captions.confirmDelete')"
+                     :message="$t('writingOffReason.confirmDelete')"
+                     :confirm-button-text="$t('actions.delete')"
+                     @confirm="deleteItemConfirmed"/>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import {onMounted, ref} from 'vue';
 import { useRouter } from 'vue-router';
-import { useWritingOffReasonsStore } from '~/stores/writingOffReasons';
+import { useWritingOffReasonsStore, type WritingOffReason } from '~/stores/writingOffReasons';
 import { useI18n } from 'vue-i18n';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import BaseSpinner from '~/components/BaseSpinner.vue';
+import ConfirmDialog from "~/components/ConfirmDialog.vue";
+import BasePagination from "~/components/BasePagination.vue";
 
 // --- Подключение composables ---
 const router = useRouter();
 const store = useWritingOffReasonsStore();
 const { t, locale } = useI18n();
 const localePath = useLocalePath();
+const showDeleteModal = ref(false);
+const itemToDelete = ref<WritingOffReason | null>(null);
 
 // --- Функции ---
 
@@ -213,13 +207,17 @@ const viewRecord = (id: number) => {
   router.push(localePath(`/writing-off-reasons/${id}`));
 };
 
-/**
- * Запрос подтверждения и вызов действия удаления
- * @param {number} id - ID записи
- */
-const confirmDelete = (id: number) => {
-  if (window.confirm(t('actions.confirmDelete'))) {
-    store.deleteRecord(id);
+const confirmDelete = (item: WritingOffReason) => {
+  itemToDelete.value = item;
+  showDeleteModal.value = true;
+};
+
+const deleteItemConfirmed = async () => {
+  if (itemToDelete.value) {
+    const success = await store.deleteRecord(itemToDelete.value.id);
+    if (success) {
+      store.writingOffReasons = store.writingOffReasons.filter(d => d.id !== itemToDelete.value?.id);
+    }
   }
 };
 

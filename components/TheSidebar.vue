@@ -82,10 +82,19 @@
         <span v-if="uiStore.isSidebarOpen" class="mx-4">{{ $t('logout') }}</span>
       </a>
     </nav>
+
+    <!-- Диалоговое окно подтверждения логаута -->
+    <div class="p-4">
+      <ConfirmDialog v-model="showLogoutModal"
+                     :title="$t('captions.confirmLogout')"
+                     :message="$t('messages.confirmLogout')"
+                     :confirm-button-text="$t('logout')"
+                     @confirm="logoutConfirmed"/>
+    </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue';
 import { 
   Home, BarChart3, LogOut, CookingPot, FolderKanban, ChevronDown, 
@@ -95,6 +104,7 @@ import { useUiStore } from '~/stores/ui';
 import { useAuthStore } from '~/stores/auth';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import ConfirmDialog from "~/components/ConfirmDialog.vue";
 
 // --- Подключение composables ---
 const route = useRoute();
@@ -102,6 +112,7 @@ const { t } = useI18n();
 const localePath = useLocalePath();
 const uiStore = useUiStore();
 const authStore = useAuthStore();
+const showLogoutModal = ref(false);
 
 // --- Ссылки для подменю "Справочники" с указанием иконок ---
 const directoryLinks = ref([
@@ -138,12 +149,13 @@ function handleLinkClick() {
   }
 }
 
-/**
- * Запрашивает подтверждение и выполняет выход из системы
- */
+
 function confirmLogout() {
-  if (window.confirm(t('messages.confirmLogout'))) {
-    authStore.logout();
-  }
+  showLogoutModal.value = true;
 }
+
+const logoutConfirmed = async () => {
+  authStore.logout();
+};
+
 </script>

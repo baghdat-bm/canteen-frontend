@@ -191,6 +191,7 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
                 message: t('measurementUnit.itemDeleted'),
                 type: 'success',
             });
+            return true;
         } catch (error) {
             console.error(`Failed to delete measurement unit with id ${id}:`, error);
 
@@ -199,6 +200,7 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
                 type: 'error',
                 duration: 7000
             });
+            return false;
         }
     }
 

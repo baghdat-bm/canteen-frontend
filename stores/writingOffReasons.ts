@@ -53,8 +53,9 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
     /**
      * Получение списка всех записей с сервера
      * @param {number} page - Номер страницы для загрузки
+     * @param language - Текущий язык
      */
-    async function fetchRecords(page: number = 1) {
+    async function fetchRecords(page: number = 1, language: string = 'ru') {
         const uiStore = useUiStore();
         isLoading.value = true;
         currentPage.value = page;
@@ -73,6 +74,9 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
             if (searchQuery.value.id) {
                 params.append('id', searchQuery.value.id);
             }
+
+            if (language)
+                params.append('ordering', `name_${language}`);
 
             if (params.size == 0) {
                 params.append('page', page.toString());
@@ -188,6 +192,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
                 message: t('writingOffReason.itemDeleted'),
                 type: 'success',
             });
+            return true;
         } catch (error) {
             console.error(`Failed to delete writing-off-reasons with id ${id}:`, error);
 
@@ -196,6 +201,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
                 type: 'error',
                 duration: 7000
             });
+            return false;
         }
     }
 

@@ -99,7 +99,7 @@
                           class="text-indigo-600 hover:text-indigo-900">
                   <Pencil class="w-5 h-5"/>
                 </NuxtLink>
-                <button @click.stop="confirmDelete(contractor.id)" class="text-red-600 hover:text-red-900">
+                <button @click.stop="confirmDelete(contractor)" class="text-red-600 hover:text-red-900">
                   <Trash2 class="w-5 h-5"/>
                 </button>
               </div>
@@ -109,51 +109,46 @@
       </table>
 
       <!-- Компонент пагинации -->
-      <div v-if="store.totalRecords > 0" class="p-4 flex items-center justify-between border-t">
-        <p class="text-sm text-gray-700">
-          {{ $t('pagination.showing', { 
-              from: (store.currentPage - 1) * store.pageSize + 1, 
-              to: Math.min(store.currentPage * store.pageSize, store.totalRecords), 
-              total: store.totalRecords 
-            }) 
-          }}
-        </p>
-        <div class="flex space-x-1">
-          <button 
-            @click="goToPage(store.currentPage - 1)" 
-            :disabled="store.currentPage === 1"
-            class="px-3 py-1 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ $t('pagination.prev') }}
-          </button>
-          <span class="px-3 py-1 text-sm">
-            {{ $t('pagination.page', { current: store.currentPage, total: store.totalPages }) }}
-          </span>
-          <button 
-            @click="goToPage(store.currentPage + 1)" 
-            :disabled="store.currentPage >= store.totalPages"
-            class="px-3 py-1 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ $t('pagination.next') }}
-          </button>
-        </div>
-      </div>
+      <BasePagination
+          :total-records="store.totalRecords"
+          :page-size="store.pageSize"
+          :current-page="store.currentPage"
+          :total-pages="store.totalPages"
+          :is-loading="store.isLoading"
+          @page-changed="goToPage"
+      />
 
+    </div>
+
+    <!-- Диалоговое окно подтверждения удаления-->
+    <div class="p-4">
+      <ConfirmDialog v-model="showDeleteModal"
+                     :title="$t('captions.confirmDelete')"
+                     :message="$t('contractor.confirmDelete')"
+                     :confirm-button-text="$t('actions.delete')"
+                     @confirm="deleteItemConfirmed"/>
     </div>
   </div>
 </template>
 
-<script setup>
-import { useContractorsStore } from '~/stores/contractors';
-const uiStore = useUiStore();
+<script setup lang="ts">
+import { useContractorsStore, type Contractor } from '~/stores/contractors';
 import BaseSpinner from '~/components/BaseSpinner.vue';
+import BasePagination from '~/components/BasePagination.vue';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import ConfirmDialog from "~/components/ConfirmDialog.vue";
+import {ref} from "vue";
 
 // --- Подключение composables ---
+const uiStore = useUiStore();
 const router = useRouter();
 const localePath = useLocalePath();
 const store = useContractorsStore();
 const { t } = useI18n();
+const showDeleteModal = ref(false);
+const itemToDelete = ref<Contractor | null>(null);
 
 // --- Функции ---
 
@@ -232,15 +227,19 @@ function viewContractor(id) {
   router.push(localePath(`/contractors/${id}`));
 }
 
-/**
- * Запрос подтверждения и удаление
- * @param {number} id - ID контрагента
- */
-function confirmDelete(id) {
-  if (window.confirm(t('actions.confirmDelete'))) {
-    store.deleteRecord(id);
-  }
+function confirmDelete(item: Contractor) {
+  itemToDelete.value = item;
+  showDeleteModal.value = true;
 }
+
+const deleteItemConfirmed = async () => {
+  if (itemToDelete.value) {
+    const success = await store.deleteRecord(itemToDelete.value.id);
+    if (success) {
+      store.contractors = store.contractors.filter(d => d.id !== itemToDelete.value?.id);
+    }
+  }
+};
 
 // При монтировании компонента запускаем загрузку первой страницы
 onMounted(() => {
