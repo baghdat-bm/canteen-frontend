@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { apiClient, type PaginatedResponse } from '~/utils/apiClient';
-import { useUiStore } from './ui.js'; 
+import {defineStore} from 'pinia';
+import {computed, ref} from 'vue';
+import {api, type PaginatedResponse} from '~/utils/apiClient';
+import {useUiStore} from './ui.js';
 
 // Интерфейс для объекта категории блюд
 export interface DishCategory {
@@ -95,7 +95,7 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
             console.log(`dishes-categories request params: ${params}`);
 
             const urlStr = `/dishes-categories/?${params.toString()}`;            
-            const response = await apiClient<PaginatedResponse<DishCategory>>(urlStr);
+            const response = await api.refs<PaginatedResponse<DishCategory>>(urlStr, { method: 'get' });
             dishCategories.value = response.results;
             totalRecords.value = response.count;
 
@@ -117,8 +117,7 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         const uiStore = useUiStore(); 
         isLoading.value = true;
         try {
-            const response = await apiClient<DishCategory>(`/dishes-categories/${id}/`);
-            dishCategory.value = response;
+            dishCategory.value = await api.refs<DishCategory>(`/dishes-categories/${id}/`, {method: 'get'});
         } catch (error) {            
             dishCategory.value = null;
             const errText = `Failed to fetch dish category with id ${id}`;
@@ -156,8 +155,8 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         const uiStore = useUiStore(); 
         const formData = createFormData(payload);
         try {
-            await apiClient('/dishes-categories/', {
-                method: 'POST',
+            await api.refs('/dishes-categories/', {
+                method: 'post',
                 body: formData,
             });
 
@@ -177,8 +176,8 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         const formData = createFormData(payload);
         try {
             // Используем PATCH, чтобы можно было не отправлять файл, если он не менялся
-            await apiClient(`/dishes-categories/${id}/`, {
-                method: 'PATCH', 
+            await api.refs(`/dishes-categories/${id}/`, {
+                method: 'patch',
                 body: formData,
             });
 
@@ -204,8 +203,8 @@ export const useDishCategoriesStore = defineStore('dishCategories', () => {
         const { t } = nuxtApp.$i18n;
 
         try {
-            await apiClient(`/dishes-categories/${id}/`, {
-                method: 'DELETE',
+            await api.refs(`/dishes-categories/${id}/`, {
+                method: 'delete',
             });
 
             dishCategories.value = dishCategories.value.filter(c => c.id !== id);

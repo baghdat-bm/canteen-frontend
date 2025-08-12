@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
-import {apiClient, type PaginatedResponse} from '~/utils/apiClient'
+import {api, type PaginatedResponse} from '~/utils/apiClient'
 import {useUiStore} from './ui.js';
 
 // Определяем интерфейс для объекта единицы измерения
@@ -86,7 +86,7 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
             console.log(`measurement-units request params: ${params}`);
 
             const urlStr = `/measurement-units/?${params.toString()}`;
-            const response = await apiClient<PaginatedResponse<MeasurementUnit>>(urlStr);
+            const response = await api.refs<PaginatedResponse<MeasurementUnit>>(urlStr, { method: 'get' });
             measurementUnits.value = response.results;
             totalRecords.value = response.count;
 
@@ -111,7 +111,7 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
         const uiStore = useUiStore();
         isLoading.value = true;
         try {
-            measurementUnit.value = await apiClient<MeasurementUnit>(`/measurement-units/${id}/`);
+            measurementUnit.value = await api.refs<MeasurementUnit>(`/measurement-units/${id}/`, { method: 'get' });
         } catch (error) {            
             measurementUnit.value = null;
             const errText = `Failed to fetch measurement unit with id ${id}`;
@@ -133,8 +133,8 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
     async function createRecord(payload: MeasurementUnitPayload) {
         const uiStore = useUiStore();
         try {
-            await apiClient('/measurement-units/', {
-                method: 'POST',
+            await api.refs('/measurement-units/', {
+                method: 'post',
                 body: payload,
             });
         } catch (error) {            
@@ -156,8 +156,8 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
     async function updateRecord(id: number, payload: MeasurementUnitPayload) {
         const uiStore = useUiStore();
         try {
-            await apiClient(`/measurement-units/${id}/`, {
-                method: 'PUT',
+            await api.refs(`/measurement-units/${id}/`, {
+                method: 'put',
                 body: payload,
             });
         } catch (error) {            
@@ -182,8 +182,8 @@ export const useMeasurementUnitsStore = defineStore('measurementUnits', () => {
         const { t } = nuxtApp.$i18n;
 
         try {
-            await apiClient(`/measurement-units/${id}/`, {
-                method: 'DELETE',
+            await api.refs(`/measurement-units/${id}/`, {
+                method: 'delete',
             });
 
             measurementUnits.value = measurementUnits.value.filter(c => c.id !== id);

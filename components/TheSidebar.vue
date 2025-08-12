@@ -21,14 +21,64 @@
         <span v-if="uiStore.isSidebarOpen" class="mx-4">{{ $t('main_page') }}</span>
       </NuxtLink>
 
+
+      <!-- Документы-->
       <div>
         <!-- Кнопка для раскрытия меню в развернутом состоянии -->
-        <button v-if="uiStore.isSidebarOpen" @click="isDirectoriesOpen = !isDirectoriesOpen" class="w-full flex items-center justify-between px-6 py-3 mt-2 hover:bg-gray-700">
+        <button v-if="uiStore.isSidebarOpen" @click="isRefsOpen = !isRefsOpen" class="w-full flex items-center justify-between px-6 py-3 mt-2 hover:bg-gray-700">
+          <div class="flex items-center">
+            <FolderKanban class="w-6 h-6" />
+            <span class="mx-4">Документы</span>
+          </div>
+          <ChevronDown :class="['w-5 h-5 transition-transform', isRefsOpen ? 'rotate-180' : '']" />
+        </button>
+
+        <!-- Просто иконка в свернутом состоянии -->
+        <div v-else class="flex items-center px-6 py-3 mt-2 text-gray-400">
+          <FolderKanban class="w-6 h-6" />
+        </div>
+
+        <!-- Выпадающее меню для развернутого состояния -->
+        <div v-if="isRefsOpen && uiStore.isSidebarOpen" class="bg-gray-900 py-1 transition-all duration-300">
+          <NuxtLink
+              v-for="link in docLinks"
+              :key="link.name"
+              :to="localePath(link.path)"
+              @click="handleLinkClick"
+              class="flex items-center py-2 pl-12 pr-6 text-sm text-gray-400 hover:bg-gray-700 hover:text-white"
+              :class="[String($route.name).startsWith(link.name) && 'bg-gray-600 !text-white']"
+          >
+            <component :is="link.icon" class="w-5 h-5" />
+            <span class="mx-4">{{ $t(link.labelKey) }}</span>
+          </NuxtLink>
+        </div>
+
+        <!-- Иконки для свернутого состояния -->
+        <div v-if="!uiStore.isSidebarOpen" class="space-y-1">
+          <NuxtLink
+              v-for="link in docLinks"
+              :key="`icon-${link.name}`"
+              :to="localePath(link.path)"
+              @click="handleLinkClick"
+              class="flex items-center justify-center py-3 hover:bg-gray-700"
+              :class="[String($route.name).startsWith(link.name) && 'bg-gray-600']"
+              :title="$t(link.labelKey)"
+          >
+            <component :is="link.icon" class="w-6 h-6" />
+          </NuxtLink>
+        </div>
+      </div>
+
+
+      <!-- Справочники-->
+      <div>
+        <!-- Кнопка для раскрытия меню в развернутом состоянии -->
+        <button v-if="uiStore.isSidebarOpen" @click="isRefsOpen = !isRefsOpen" class="w-full flex items-center justify-between px-6 py-3 mt-2 hover:bg-gray-700">
           <div class="flex items-center">
             <FolderKanban class="w-6 h-6" />
             <span class="mx-4">{{ $t('refs.refs_name') }}</span>
           </div>
-          <ChevronDown :class="['w-5 h-5 transition-transform', isDirectoriesOpen ? 'rotate-180' : '']" />
+          <ChevronDown :class="['w-5 h-5 transition-transform', isRefsOpen ? 'rotate-180' : '']" />
         </button>
         
         <!-- Просто иконка в свернутом состоянии -->
@@ -37,9 +87,9 @@
         </div>
 
         <!-- Выпадающее меню для развернутого состояния -->
-        <div v-if="isDirectoriesOpen && uiStore.isSidebarOpen" class="bg-gray-900 py-1 transition-all duration-300">
+        <div v-if="isRefsOpen && uiStore.isSidebarOpen" class="bg-gray-900 py-1 transition-all duration-300">
             <NuxtLink 
-              v-for="link in directoryLinks"
+              v-for="link in refLinks"
               :key="link.name"
               :to="localePath(link.path)" 
               @click="handleLinkClick" 
@@ -54,7 +104,7 @@
         <!-- Иконки для свернутого состояния -->
         <div v-if="!uiStore.isSidebarOpen" class="space-y-1">
           <NuxtLink
-            v-for="link in directoryLinks"
+            v-for="link in refLinks"
             :key="`icon-${link.name}`"
             :to="localePath(link.path)"
             @click="handleLinkClick"
@@ -96,7 +146,8 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { 
+import {
+  FilePlus2,
   Home, BarChart3, LogOut, CookingPot, FolderKanban, ChevronDown, 
   Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse, Salad
 } from 'lucide-vue-next';
@@ -114,8 +165,21 @@ const uiStore = useUiStore();
 const authStore = useAuthStore();
 const showLogoutModal = ref(false);
 
+// --- Ссылки для подменю "Документы" с указанием иконок ---
+const docLinks = ref([
+  { name: 'incoming-invoices', path: '/incoming-invoices', labelKey: 'incomingInvoices', icon: FilePlus2 },
+]);
+
+const docRoutes = docLinks.value.map(l => l.name);
+
+// --- Состояние для выпадающего меню ---
+const isDocsOpen = ref(
+    docRoutes.some(dir => String(route.name).startsWith(dir))
+);
+
+
 // --- Ссылки для подменю "Справочники" с указанием иконок ---
-const directoryLinks = ref([
+const refLinks = ref([
   { name: 'contractors', path: '/contractors', labelKey: 'contractors', icon: Building2 },
   { name: 'measurement-units', path: '/measurement-units', labelKey: 'refs.measurement_units', icon: Ruler },
   { name: 'writing-off-reasons', path: '/writing-off-reasons', labelKey: 'refs.writingOffReasons', icon: BookMinus },
@@ -124,17 +188,21 @@ const directoryLinks = ref([
   { name: 'the-dishes', path: '/the-dishes', labelKey: 'dish.itemList', icon: Salad },
 ]);
 
-const directoryRoutes = directoryLinks.value.map(l => l.name);
+const refRoutes = refLinks.value.map(l => l.name);
 
 // --- Состояние для выпадающего меню ---
-const isDirectoriesOpen = ref(
-  directoryRoutes.some(dir => String(route.name).startsWith(dir))
+const isRefsOpen = ref(
+  refRoutes.some(dir => String(route.name).startsWith(dir))
 );
 
 // Следим за изменением маршрута, чтобы подменю оставалось открытым
 watch(() => route.name, (newName) => {
-  if (directoryRoutes.some(dir => String(newName).startsWith(dir))) {
-    isDirectoriesOpen.value = true;
+  if (docRoutes.some(dir => String(newName).startsWith(dir))) {
+    isDocsOpen.value = true;
+  }
+
+  if (refRoutes.some(dir => String(newName).startsWith(dir))) {
+    isRefsOpen.value = true;
   }
 });
 

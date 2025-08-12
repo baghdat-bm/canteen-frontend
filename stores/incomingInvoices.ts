@@ -1,91 +1,169 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { apiClient } from '~/utils/apiClient';
-import { useUiStore } from './ui.js';
-import { useNuxtApp } from '#app';
+// stores/incomingInvoices.ts
+import {defineStore} from 'pinia';
+import {computed, ref} from 'vue';
+import {api, type PaginatedResponse} from '~/utils/apiClient';
+import {useUiStore} from './ui.js';
+import {useNuxtApp} from '#app';
 
-// --- Интерфейсы данных ---
+/** ================== Типы под ваше API ================== */
 
-// Интерфейс для элемента в табличной части документа
-export interface IncomingInvoiceItem {
-    id?: number; // ID опционален, т.к. при создании его еще нет
-    dish: { // Блюдо - вложенный объект
-        id: number;
-        name: string;
-    };
-    quantity: number;
-    price: number;
-}
+// Для списка накладных (warehouse/supplier — вложенные объекты)
+interface WarehouseLite { id: number; name: string }
+interface SupplierLite { id: number; name: string; bin?: string }
 
-// Интерфейс для самого документа "Приходная накладная"
-export interface IncomingInvoice {
+export interface IncomingInvoiceList {
     id: number;
-    doc_number: string;
-    doc_date: string; // Дату храним как строку в формате YYYY-MM-DD
-    notes: string;
-    items: IncomingInvoiceItem[];
+    date: string;           // ISO
+    accepted: boolean;
+    warehouse: WarehouseLite;
+    supplier: SupplierLite;
+    commentary: string;
+    amount: string;
+    shipping_cost: string;
+    paid_amount: string;
+    author: string;
 }
 
-// Интерфейс для ответа API с пагинацией
-export interface PaginatedResponse<T> {
-    count: number;
-    results: T[];
+// Для детальной накладной (warehouse/supplier — ID)
+export interface DishLite {
+    id: number;
+    name_kz?: string;
+    name_ru?: string;
+    name_en?: string;
+}
+export interface MeasurementUnitLite {
+    id: number;
+    name_kz?: string;
+    name_ru?: string;
+    name_en?: string;
 }
 
-// Интерфейс для данных, отправляемых на сервер при создании/обновлении
-// Мы убираем ID и номер документа, т.к. они назначаются сервером
-export type IncomingInvoicePayload = Omit<IncomingInvoice, 'id' | 'doc_number'> & {
-    items: Array<Omit<IncomingInvoiceItem, 'id' | 'dish'> & { dish_id: number }>;
+export interface IncomingInvoiceItem {
+    id?: number;
+    dish: DishLite | number;                 // в ответе — объект, в payload — ID
+    quantity: string;                        // decimal приходит строкой
+    measurement_unit: MeasurementUnitLite | number;
+    cost_price: string;
+    sale_price: string;
+}
+
+export interface IncomingInvoiceDetail {
+    id: number;
+    date: string;            // ISO
+    accepted: boolean;
+    warehouse: number;       // ID
+    supplier: number;        // ID
+    commentary: string;
+    amount: string;
+    shipping_cost: string;
+    paid_amount: string;
+    author: string;
+    invoice_dish_items: IncomingInvoiceItem[];
+}
+
+// Пэйлоад на создание/обновление (ID-шники вместо объектов)
+export type IncomingInvoicePayload = Omit<
+    IncomingInvoiceDetail,
+    'id' | 'author' | 'amount' | 'invoice_dish_items'
+> & {
+    invoice_dish_items: Array<{
+        id?: number;
+        dish: number;
+        measurement_unit: number;
+        quantity: string;
+        cost_price: string;
+        sale_price: string;
+    }>;
 };
 
+/** ================== Store ================== */
 
 export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
     // --- State ---
-    const invoices = ref<IncomingInvoice[]>([]); // Список для текущей страницы
-    const invoice = ref<IncomingInvoice | null>(null); // Одна выбранная накладная
+    const invoices = ref<IncomingInvoiceList[]>([]);
+    const invoice = ref<IncomingInvoiceDetail | null>(null);
     const isLoading = ref(false);
 
-    // --- Состояние для пагинации и поиска ---
+    // --- Пагинация/поиск ---
     const totalRecords = ref(0);
-    const pageSize = ref(20); // Записей на страницу
+    const pageSize = ref(20);
     const currentPage = ref(1);
-    const searchQuery = ref({
-        doc_number: '',
-        notes: ''
+
+    // подберите имена фильтров под ваш бэкенд (примерные)
+    const searchQuery = ref<{
+        supplier?: number | null;
+        warehouse?: number | null;
+        accepted?: boolean | null;
+        date_from?: string | null;   // YYYY-MM-DD
+        date_to?: string | null;     // YYYY-MM-DD
+    }>({
+        supplier: null,
+        warehouse: null,
+        accepted: null,
+        date_from: null,
+        date_to: null,
     });
 
     // --- Getters ---
-    const totalPages = computed(() => {
-        if (totalRecords.value === 0) return 1;
-        return Math.ceil(totalRecords.value / pageSize.value);
-    });
+    const totalPages = computed(() =>
+        totalRecords.value ? Math.ceil(totalRecords.value / pageSize.value) : 1
+    );
+
+    // --- Helpers ---
+    function toPayload(detail: IncomingInvoiceDetail): IncomingInvoicePayload {
+        return {
+            date: detail.date,
+            accepted: detail.accepted,
+            warehouse: detail.warehouse,
+            supplier: detail.supplier,
+            commentary: detail.commentary,
+            shipping_cost: detail.shipping_cost,
+            paid_amount: detail.paid_amount,
+            invoice_dish_items: (detail.invoice_dish_items ?? []).map(it => ({
+                id: it.id,
+                dish: typeof it.dish === 'number' ? it.dish : it.dish.id,
+                measurement_unit:
+                    typeof it.measurement_unit === 'number'
+                        ? it.measurement_unit
+                        : it.measurement_unit.id,
+                quantity: it.quantity,
+                cost_price: it.cost_price,
+                sale_price: it.sale_price,
+            })),
+        };
+    }
 
     // --- Actions ---
 
-    /**
-     * Получение списка накладных с учетом пагинации и поиска
-     * @param {number} page - Номер страницы
-     */
+    /** Список с пагинацией и фильтрами */
     async function fetchRecords(page: number = 1) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
+
         isLoading.value = true;
         currentPage.value = page;
 
         try {
-            const params = new URLSearchParams({
-                page: page.toString(),
-                page_size: pageSize.value.toString(),
-            });
+            const params = new URLSearchParams();
 
-            if (searchQuery.value.doc_number) params.append('doc_number__icontains', searchQuery.value.doc_number);
-            if (searchQuery.value.notes) params.append('notes__icontains', searchQuery.value.notes);
+            // ВСЕГДА добавляем page и page_size
+            params.set('page', page.toString());
+            params.set('page_size', pageSize.value.toString());
 
-            const response = await apiClient<PaginatedResponse<IncomingInvoice>>(`/incoming-invoices/?${params.toString()}`);
+            // Фильтры (добавляйте/переименуйте под ваш бэк)
+            if (searchQuery.value.supplier)  params.set('supplier', String(searchQuery.value.supplier));
+            if (searchQuery.value.warehouse) params.set('warehouse', String(searchQuery.value.warehouse));
+            if (searchQuery.value.accepted !== null && searchQuery.value.accepted !== undefined) {
+                params.set('accepted', String(searchQuery.value.accepted));
+            }
+            if (searchQuery.value.date_from) params.set('date_from', searchQuery.value.date_from);
+            if (searchQuery.value.date_to)   params.set('date_to', searchQuery.value.date_to);
 
-            invoices.value = response.results;
-            totalRecords.value = response.count;
+            const url = `/incoming-invoices/?${params.toString()}`;
+            const data = await api.docs<PaginatedResponse<IncomingInvoiceList>>(url, { method: 'get' });
 
+            invoices.value = data.results;
+            totalRecords.value = data.count;
         } catch (error) {
             console.error('Failed to fetch incoming invoices:', error);
             uiStore.showNotification({
@@ -97,10 +175,7 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
         }
     }
 
-    /**
-     * Получение одной накладной по ID
-     * @param {number} id - ID накладной
-     */
+    /** Детальная накладная */
     async function fetchRecord(id: number) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
@@ -108,8 +183,7 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
         invoice.value = null;
 
         try {
-            const response = await apiClient<IncomingInvoice>(`/incoming-invoices/${id}/`);
-            invoice.value = response;
+            invoice.value = await api.docs<IncomingInvoiceDetail>(`/incoming-invoices/${id}/`, {method: 'get'});
         } catch (error) {
             console.error(`Failed to fetch incoming invoice with id ${id}:`, error);
             uiStore.showNotification({ message: t('message.fetchErrorItem'), type: 'error' });
@@ -118,106 +192,115 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
         }
     }
 
-    /**
-     * Создание новой накладной
-     * @param {IncomingInvoicePayload} payload - Данные для создания
-     * @returns {Promise<IncomingInvoice | null>} - Возвращает созданный объект или null в случае ошибки
-     */
-    async function createRecord(payload: IncomingInvoicePayload): Promise<IncomingInvoice | null> {
+    /** Создание */
+    async function createRecord(payloadOrDetail: IncomingInvoicePayload | IncomingInvoiceDetail) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
 
         try {
-            const newInvoice = await apiClient<IncomingInvoice>('/incoming-invoices/', {
+            const payload =
+                (payloadOrDetail as any).invoice_dish_items && typeof (payloadOrDetail as any).invoice_dish_items[0]?.dish !== 'object'
+                    ? (payloadOrDetail as IncomingInvoicePayload)
+                    : toPayload(payloadOrDetail as IncomingInvoiceDetail);
+
+            const created = await api.docs<IncomingInvoiceDetail>('/incoming-invoices/', {
                 method: 'POST',
                 body: payload,
             });
-            uiStore.showNotification({ message: t('message.createSuccess', { item: t('incomingInvoice.item') }), type: 'success' });
-            return newInvoice;
+
+            uiStore.showNotification({
+                message: t('message.createSuccess', { item: t('incomingInvoice.item') }),
+                type: 'success',
+            });
+
+            return created;
         } catch (error) {
             console.error('Failed to create incoming invoice:', error);
-            uiStore.showNotification({ message: t('message.createError', { item: t('incomingInvoice.item') }), type: 'error' });
+            uiStore.showNotification({
+                message: t('message.createError', { item: t('incomingInvoice.item') }),
+                type: 'error',
+            });
             return null;
         }
     }
 
-    /**
-     * Обновление существующей накладной
-     * @param {number} id - ID накладной
-     * @param {IncomingInvoicePayload} payload - Данные для обновления
-     * @returns {Promise<IncomingInvoice | null>} - Возвращает обновленный объект или null в случае ошибки
-     */
-    async function updateRecord(id: number, payload: IncomingInvoicePayload): Promise<IncomingInvoice | null> {
+    /** Обновление */
+    async function updateRecord(id: number, payloadOrDetail: IncomingInvoicePayload | IncomingInvoiceDetail) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
 
         try {
-            const updatedInvoice = await apiClient<IncomingInvoice>(`/incoming-invoices/${id}/`, {
+            const payload =
+                (payloadOrDetail as any).invoice_dish_items && typeof (payloadOrDetail as any).invoice_dish_items[0]?.dish !== 'object'
+                    ? (payloadOrDetail as IncomingInvoicePayload)
+                    : toPayload(payloadOrDetail as IncomingInvoiceDetail);
+
+            const updated = await api.docs<IncomingInvoiceDetail>(`/incoming-invoices/${id}/`, {
                 method: 'PUT',
                 body: payload,
             });
-            uiStore.showNotification({ message: t('message.updateSuccess', { item: t('incomingInvoice.item') }), type: 'success' });
-            return updatedInvoice;
+
+            uiStore.showNotification({
+                message: t('message.updateSuccess', { item: t('incomingInvoice.item') }),
+                type: 'success',
+            });
+
+            return updated;
         } catch (error) {
             console.error(`Failed to update incoming invoice with id ${id}:`, error);
-            uiStore.showNotification({ message: t('message.updateError', { item: t('incomingInvoice.item') }), type: 'error' });
+            uiStore.showNotification({
+                message: t('message.updateError', { item: t('incomingInvoice.item') }),
+                type: 'error',
+            });
             return null;
         }
     }
 
-    /**
-     * Удаление накладной
-     * @param {number} id - ID накладной
-     * @returns {Promise<boolean>} - Возвращает true в случае успеха
-     */
-    async function deleteRecord(id: number): Promise<boolean> {
+    /** Удаление */
+    async function deleteRecord(id: number) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
 
         try {
-            await apiClient(`/incoming-invoices/${id}/`, {
-                method: 'DELETE',
-            });
-            uiStore.showNotification({ message: t('message.deleteSuccess', { item: t('incomingInvoice.item') }), type: 'success' });
-            // Вместо ручного удаления из списка, просто перезагружаем данные для текущей страницы
+            await api.docs(`/incoming-invoices/${id}/`, { method: 'DELETE' });
             await fetchRecords(currentPage.value);
+            uiStore.showNotification({
+                message: t('message.deleteSuccess', { item: t('incomingInvoice.item') }),
+                type: 'success',
+            });
             return true;
         } catch (error) {
             console.error(`Failed to delete incoming invoice with id ${id}:`, error);
-            uiStore.showNotification({ message: t('message.deleteError', { item: t('incomingInvoice.item') }), type: 'error' });
+            uiStore.showNotification({
+                message: t('message.deleteError', { item: t('incomingInvoice.item') }),
+                type: 'error',
+            });
             return false;
         }
     }
 
-    /**
-     * Сброс состояния хранилища
-     */
+    /** Сброс */
     function reset() {
         invoices.value = [];
         invoice.value = null;
         isLoading.value = false;
         totalRecords.value = 0;
         currentPage.value = 1;
-        searchQuery.value = { doc_number: '', notes: '' };
+        searchQuery.value = {
+            supplier: null,
+            warehouse: null,
+            accepted: null,
+            date_from: null,
+            date_to: null,
+        };
     }
 
     return {
-        // State
-        invoices,
-        invoice,
-        isLoading,
-        totalRecords,
-        pageSize,
-        currentPage,
-        searchQuery,
-        // Getters
+        // state
+        invoices, invoice, isLoading, totalRecords, pageSize, currentPage, searchQuery,
+        // getters
         totalPages,
-        // Actions
-        fetchRecords,
-        fetchRecord,
-        createRecord,
-        updateRecord,
-        deleteRecord,
-        reset,
+        // actions
+        fetchRecords, fetchRecord, createRecord, updateRecord, deleteRecord, reset,
     };
 });

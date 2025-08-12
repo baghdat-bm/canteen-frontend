@@ -1,10 +1,10 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import {apiClient, type PaginatedResponse} from '~/utils/apiClient';
-import { useUiStore } from './ui.js';
+import {defineStore} from 'pinia';
+import {computed, ref} from 'vue';
+import {api, type PaginatedResponse} from '~/utils/apiClient';
+import {useUiStore} from './ui.js';
 
-import { useAuthStore } from './auth';
-import { useNuxtApp } from '#app';
+import {useAuthStore} from './auth';
+import {useNuxtApp} from '#app';
 
 // Определяем интерфейс для объекта записи
 export interface Warehouse {
@@ -60,7 +60,7 @@ export const useWarehouseStore = defineStore('warehouses', () => {
             params.append('page_size', pageSize.value.toString());
 
             const urlStr = `/warehouses/?${params.toString()}`;
-            const response = await apiClient<PaginatedResponse<Warehouse>>(urlStr);
+            const response = await api.refs<PaginatedResponse<Warehouse>>(urlStr, { method: 'get' });
             warehouses.value = response.results;
             totalRecords.value = response.count;
 
@@ -81,8 +81,7 @@ export const useWarehouseStore = defineStore('warehouses', () => {
         const uiStore = useUiStore(); 
         isLoading.value = true;
         try {
-            const response = await apiClient<Warehouse>(`/warehouses/${id}/`);
-            warehouse.value = response;
+            warehouse.value = await api.refs<Warehouse>(`/warehouses/${id}/`, {method: 'get'});
         } catch (error) {
             const errText = `Failed to fetch warehouse with id ${id}`;
             console.error(errText, error);
@@ -117,8 +116,8 @@ export const useWarehouseStore = defineStore('warehouses', () => {
                 school: authStore.userProfile.school_id
             };
 
-            await apiClient('/warehouses/', {
-                method: 'POST',
+            await api.refs('/warehouses/', {
+                method: 'post',
                 body: fullPayload,
             });
         } catch (error) {
@@ -145,8 +144,8 @@ export const useWarehouseStore = defineStore('warehouses', () => {
                 school: authStore.userProfile.school_id
             };
 
-            await apiClient(`/warehouses/${id}/`, {
-                method: 'PUT',
+            await api.refs(`/warehouses/${id}/`, {
+                method: 'put',
                 body: fullPayload,
             });
         } catch (error) {
@@ -161,8 +160,8 @@ export const useWarehouseStore = defineStore('warehouses', () => {
         const { t } = useNuxtApp().$i18n;
 
         try {
-            await apiClient(`/warehouses/${id}/`, {
-                method: 'DELETE',
+            await api.refs(`/warehouses/${id}/`, {
+                method: 'delete',
             });
 
             warehouses.value = warehouses.value.filter(c => c.id !== id);

@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
 import {ref} from 'vue';
-import {apiClient, type PaginatedResponse} from '~/utils/apiClient';
+import {api, type PaginatedResponse} from '~/utils/apiClient';
 import {useUiStore} from './ui.js';
 
 // Определяем интерфейс для объекта записи
@@ -86,7 +86,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
             console.log(`writing-off-reasons request params: ${params}`);
 
             const urlStr = `/writing-off-reasons/?${params.toString()}`;
-            const response = await apiClient<PaginatedResponse<WritingOffReason>>(urlStr);
+            const response = await api.refs<PaginatedResponse<WritingOffReason>>(urlStr, { method: 'get' });
             writingOffReasons.value = response.results;
             totalRecords.value = response.count;
 
@@ -111,7 +111,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
         const uiStore = useUiStore(); 
         isLoading.value = true;
         try {
-            writingOffReason.value = await apiClient<WritingOffReason>(`/writing-off-reasons/${id}/`);
+            writingOffReason.value = await api.refs<WritingOffReason>(`/writing-off-reasons/${id}/`, { method: 'get' });
         } catch (error) {            
             writingOffReason.value = null;
             const errText = `Failed to fetch writing-off-reasons with id ${id}`;
@@ -133,8 +133,8 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
     async function createRecord(payload: WritingOffReasonPayload) {
         const uiStore = useUiStore(); 
         try {
-            await apiClient('/writing-off-reasons/', {
-                method: 'POST',
+            await api.refs('/writing-off-reasons/', {
+                method: 'post',
                 body: payload,
             });
         } catch (error) {            
@@ -156,8 +156,8 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
     async function updateRecord(id: number, payload: WritingOffReasonPayload) {
         const uiStore = useUiStore(); 
         try {
-            await apiClient(`/writing-off-reasons/${id}/`, {
-                method: 'PUT',
+            await api.refs(`/writing-off-reasons/${id}/`, {
+                method: 'put',
                 body: payload,
             });
 
@@ -183,8 +183,8 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
         const { t } = nuxtApp.$i18n;
 
         try {
-            await apiClient(`/writing-off-reasons/${id}/`, {
-                method: 'DELETE',
+            await api.refs(`/writing-off-reasons/${id}/`, {
+                method: 'delete',
             });
 
             writingOffReasons.value = writingOffReasons.value.filter(c => c.id !== id);

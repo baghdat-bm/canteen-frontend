@@ -57,7 +57,12 @@ export default defineNuxtConfig({
   // настройки приложения
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:8000/ru/school-api', // URL бэкенда
+        // общий хост (dev/prod/stage)
+        apiHost: process.env.NUXT_PUBLIC_API_HOST || 'http://localhost:8000',
+        // префиксы путей
+        apiPathRefs: process.env.NUXT_PUBLIC_API_PATH_SCHOOL || '/ru/school-api',
+        apiPathDocs: process.env.NUXT_PUBLIC_API_PATH_FOOD || '/ru/food-api',
+        apiPathReports: process.env.NUXT_PUBLIC_API_PATH_REPORTS || '/ru/reports-api',
     }
   },
 })

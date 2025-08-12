@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { apiClient } from '~/utils/apiClient'; 
+import { api, resolveBaseURL } from '~/utils/apiClient';
 import { useLocalePath } from '#i18n'
 
 import { useWarehouseStore } from './warehouses';
@@ -9,7 +9,6 @@ import { useContractorsStore } from './contractors';
 import { useMeasurementUnitsStore } from './measurementUnits';
 import { useWritingOffReasonsStore } from './writingOffReasons';
 
-// Интерфейсы оставляем без изменений
 interface TokenResponse {
     refresh: string;
     access: string;
@@ -33,7 +32,6 @@ interface UserProfile {
 
 export const useAuthStore = defineStore('auth', () => {
 
-    const config = useRuntimeConfig();
     const router = useRouter();
 
     // State    
@@ -72,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         try {
             const tokens = await $fetch<TokenResponse>(`/token/`, {
-                baseURL: config.public.apiBase,
+                baseURL: resolveBaseURL('refs'),
                 method: 'POST',
                 body: {
                     username: credentials.login,
@@ -92,7 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function fetchUser(login: string) {
         try {
-            const profile = await apiClient<UserProfile>('/user-data/');
+            const profile = await api.refs<UserProfile>('/user-data/', { method: 'get' });
             
             profile.login = login;
 
@@ -112,7 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             console.log('Обновление токена...');
             const response = await $fetch<RefreshResponse>(`/token/refresh/`, {
-                baseURL: config.public.apiBase,
+                baseURL: resolveBaseURL('refs'),
                 method: 'POST',
                 body: {
                     refresh: refreshToken.value,

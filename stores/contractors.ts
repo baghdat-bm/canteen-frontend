@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
-import {apiClient, type PaginatedResponse} from '~/utils/apiClient'
+import {api, type PaginatedResponse} from '~/utils/apiClient'
 import {useUiStore} from './ui.js';
 
 // Определяем интерфейс для нашего контрагента
@@ -82,7 +82,7 @@ export const useContractorsStore = defineStore('contractors', () => {
             console.log(`contractors request params: ${params}`);
 
             const urlStr = `/contractors/?${params.toString()}`;
-            const response = await apiClient<PaginatedResponse<Contractor>>(urlStr);
+            const response = await api.refs<PaginatedResponse<Contractor>>(urlStr, { method: 'get' });
 
             contractors.value = response.results;
             totalRecords.value = response.count;
@@ -110,7 +110,7 @@ export const useContractorsStore = defineStore('contractors', () => {
         contractor.value = null; // Очищаем предыдущее значение
 
         try {
-            contractor.value = await apiClient<Contractor>(`/contractors/${id}/`);
+            contractor.value = await api.refs<Contractor>(`/contractors/${id}/`, { method: 'get' });
         } catch (error) {
             console.error(`Failed to fetch contractor with id ${id}:`, error);
             uiStore.showNotification({
@@ -128,8 +128,8 @@ export const useContractorsStore = defineStore('contractors', () => {
     async function createRecord(data: Omit<Contractor, 'id'>) {
         const uiStore = useUiStore(); 
         try {
-            const newContractor = await apiClient<Contractor>('/contractors/', {
-                method: 'POST',
+            const newContractor = await api.refs<Contractor>('/contractors/', {
+                method: 'post',
                 body: data,
             });
             // Добавляем нового контрагента в начало списка для мгновенного отклика
@@ -154,8 +154,8 @@ export const useContractorsStore = defineStore('contractors', () => {
     async function updateRecord(id: number, data: Partial<Omit<Contractor, 'id'>>) {
         const uiStore = useUiStore(); 
         try {
-            const updatedContractor = await apiClient<Contractor>(`/contractors/${id}/`, {
-                method: 'PATCH',
+            const updatedContractor = await api.refs<Contractor>(`/contractors/${id}/`, {
+                method: 'patch',
                 body: data,
             });
             // Находим и обновляем контрагента в нашем локальном списке
@@ -184,9 +184,7 @@ export const useContractorsStore = defineStore('contractors', () => {
         const { t } = nuxtApp.$i18n;
 
         try {
-            await apiClient(`/contractors/${id}/`, {
-                method: 'DELETE',
-            });
+            await api.refs(`/contractors/${id}/`, { method: 'delete' });
             // Удаляем контрагента из локального списка для мгновенного отклика
             contractors.value = contractors.value.filter(c => c.id !== id);
             uiStore.showNotification({
