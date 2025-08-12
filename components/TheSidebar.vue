@@ -27,7 +27,7 @@
         <!-- Кнопка для раскрытия меню в развернутом состоянии -->
         <button v-if="uiStore.isSidebarOpen" @click="isRefsOpen = !isRefsOpen" class="w-full flex items-center justify-between px-6 py-3 mt-2 hover:bg-gray-700">
           <div class="flex items-center">
-            <FolderKanban class="w-6 h-6" />
+            <Files class="w-6 h-6" />
             <span class="mx-4">Документы</span>
           </div>
           <ChevronDown :class="['w-5 h-5 transition-transform', isRefsOpen ? 'rotate-180' : '']" />
@@ -35,7 +35,7 @@
 
         <!-- Просто иконка в свернутом состоянии -->
         <div v-else class="flex items-center px-6 py-3 mt-2 text-gray-400">
-          <FolderKanban class="w-6 h-6" />
+          <Files class="w-6 h-6" />
         </div>
 
         <!-- Выпадающее меню для развернутого состояния -->
@@ -147,7 +147,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import {
-  FilePlus2,
+  Files, FilePlus2,
   Home, BarChart3, LogOut, CookingPot, FolderKanban, ChevronDown, 
   Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse, Salad
 } from 'lucide-vue-next';

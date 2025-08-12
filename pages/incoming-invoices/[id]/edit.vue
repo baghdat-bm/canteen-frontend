@@ -1,64 +1,44 @@
-<template>
-  <div class="container mx-auto p-4">
-    <div class="w-full max-w-2xl mx-auto">
-      <h1 class="text-2xl font-bold mb-6">{{ $t('refs.edit_contractor') }}</h1>
-      
-      <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
-        <BaseSpinner />
-        <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
-      </div>
-      
-      <!-- Форма в белой карточке -->
-      <div v-else-if="contractor" class="bg-white p-8 rounded-lg shadow-md">
-        <ContractorForm :initial-data="contractor" @submit="handleUpdate" :is-submitting="isSubmitting" />
-      </div>
-      
-      <!-- Сообщение, если данные не найдены -->
-      <div v-else class="text-center">
-        <p>{{ $t('messages.couldntUploadEditingData') }}</p>
-      </div>
-    </div>
-  </div>
-</template>
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import IncomingInvoiceForm from '~/components/incoming-invoices/IncomingInvoiceForm.vue';
+import { useIncomingInvoicesStore } from '~/stores/incomingInvoices';
+import type { IncomingInvoiceDetail } from '~/stores/incomingInvoices';
 
-<script setup>
-import { ref, computed } from 'vue';
-import { useContractorsStore } from '~/stores/contractors';
-import ContractorForm from '~/components/contractors/ContractorForm.vue';
-import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import BaseSpinner from '~/components/BaseSpinner.vue';
-
-// --- Подключение composables ---
-const store = useContractorsStore();
 const route = useRoute();
-const localePath = useLocalePath();
-const { t } = useI18n();
-const isSubmitting = ref(false);
+const router = useRouter();
+const store = useIncomingInvoicesStore();
 
-// --- Загрузка данных ---
-const { pending } = await useAsyncData(
-  'contractor-edit', 
-  () => store.fetchContractors()
-);
+const model = ref<IncomingInvoiceDetail | null>(null);
 
-// --- Вычисляемые свойства ---
-const contractorId = computed(() => Number(route.params.id));
-const contractor = computed(() => store.getContractorById(contractorId.value));
+onMounted(async () => {
+  const id = Number(route.params.id);
+  await store.fetchRecord(id);
+  model.value = store.invoice;
+});
 
-// --- Функции ---
-async function handleUpdate(formData) {
-  isSubmitting.value = true;
-  try {
-    await store.updateRecord(contractorId.value, formData);
-    // После успешного обновления переходим на страницу списка
-    await navigateTo(localePath('/contractors'));
-  } catch (error) {
-    // В реальном приложении здесь лучше показать уведомление пользователю
-    console.error('Failed to update contractor:', error);
-    alert(t('message.couldntUpdateCounterparty'));
-  } finally {
-    isSubmitting.value = false;
+async function handleSubmit(payload: any) {
+  const id = Number(route.params.id);
+  const updated = await store.updateRecord(id, payload);
+  if (updated?.id) {
+    router.push(`/incoming-invoices/${updated.id}`);
   }
 }
 </script>
+
+<template>
+  <div class="p-4 lg:p-6 space-y-4">
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl font-semibold">Редактирование накладной</h1>
+    </div>
+
+    <div v-if="!model" class="text-gray-500">Загрузка…</div>
+    <IncomingInvoiceForm
+        v-else
+        mode="edit"
+        :model="model"
+        @submit="handleSubmit"
+        @cancel="$router.back()"
+    />
+  </div>
+</template>
