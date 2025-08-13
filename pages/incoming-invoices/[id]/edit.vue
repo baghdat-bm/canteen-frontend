@@ -36,7 +36,7 @@ async function handleSubmit(payload: any) {
     <IncomingInvoiceForm
         v-else
         mode="edit"
-        :model="model"
+        v-model="form"
         @submit="handleSubmit"
         @cancel="$router.back()"
     />

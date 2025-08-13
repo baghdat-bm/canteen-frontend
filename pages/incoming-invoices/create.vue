@@ -20,6 +20,6 @@ async function handleSubmit(payload: Parameters<typeof store.createRecord>[0]) {
       <h1 class="text-xl font-semibold">Новая приходная накладная</h1>
     </div>
 
-    <IncomingInvoiceForm mode="create" @submit="handleSubmit" @cancel="$router.back()" />
+    <IncomingInvoiceForm mode="create" v-model="form" @submit="handleSubmit" @cancel="$router.back()" />
   </div>
 </template>

@@ -23,7 +23,7 @@ export function resolveBaseURL(key: ApiBaseKey) {
     return map[key];
 }
 
-export async function apiClient<T = any>(
+async function apiClient<T = any>(
     key: ApiBaseKey,
     url: NitroFetchRequest,
     options: NitroFetchOptions<NitroFetchRequest> = {}
