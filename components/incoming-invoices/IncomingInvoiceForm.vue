@@ -1,462 +1,192 @@
-<script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
-import { useWarehouseStore } from '~/stores/warehouses';
-import { useContractorsStore } from '~/stores/contractors';
-import ContractorPickerDialog from '~/components/contractors/ContractorPickerDialog.vue';
-
-/** ===== Типы формы ===== */
-type ID = number;
-
-interface DishLite {
-  id: ID;
-  name_kz?: string; name_ru?: string; name_en?: string;
-}
-interface UnitLite {
-  id: ID;
-  name_kz?: string; name_ru?: string; name_en?: string;
-}
-
-export interface InvoiceItemForm {
-  id?: ID;
-  dish: ID | DishLite;                // в деталях может прийти объект — поддерживаем оба варианта
-  measurement_unit: ID | UnitLite;
-  quantity: string;                   // decimal как строка
-  cost_price: string;
-  sale_price: string;
-}
-
-export interface IncomingInvoiceFormModel {
-  id?: ID;
-  date: string;                       // ISO (бэку так удобнее)
-  accepted: boolean;
-  warehouse: ID | null;               // ID склада
-  supplier: ID | null;                // ID контрагента
-  commentary: string;
-  shipping_cost: string;
-  paid_amount: string;
-  invoice_dish_items: InvoiceItemForm[];
-}
-
-/** ===== v-model формы ===== */
-const model = defineModel<IncomingInvoiceFormModel>();
-
-function defaultModel(): IncomingInvoiceFormModel {
-  return {
-    date: new Date().toISOString(),   // сохраним ISO; инпут покажет локально через dateLocal
-    accepted: false,
-    warehouse: null,
-    supplier: null,
-    commentary: '',
-    shipping_cost: '0',
-    paid_amount: '0',
-    invoice_dish_items: [],
-  };
-}
-
-// если родитель пока не дал v-model — создаём локально, чтобы не падать
-if (!model.value) {
-  model.value = defaultModel();
-}
-
-/** ===== Stores ===== */
-const warehousesStore = useWarehouseStore();
-const contractorsStore = useContractorsStore();
-
-/** ===== Локальное состояние ===== */
-const isContractorDialogOpen = ref(false);
-const supplierName = ref<string>('');
-
-/** Заголовок кнопки Сохранить (если нужно менять — можно передать пропсом) */
-const props = defineProps<{
-  submitLabel?: string
-  disabled?: boolean
-}>();
-const emit = defineEmits<{
-  (e: 'submit', payload: any): void
-  (e: 'cancel'): void
-}>();
-
-/** ===== Вспомогалки ===== */
-function objId(v: number | { id: number }): number | null {
-  if (v == null) return null;
-  if (typeof v === 'number') return v;
-  if (typeof v === 'object' && 'id' in v) return (v as any).id ?? null;
-  return null;
-}
-
-const itemsTotal = computed(() => {
-  // локальный «подсчёт суммы» — чисто для UI, бек всё равно посчитает сам
-  return (model.value.invoice_dish_items || []).reduce((sum, it) => {
-    const q = parseFloat(it.quantity || '0') || 0;
-    const p = parseFloat(it.cost_price || '0') || 0;
-    return sum + q * p;
-  }, 0);
-});
-
-function addItem() {
-  model.value.invoice_dish_items.push({
-    dish: null as unknown as number,              // позже заменим на селектор блюд
-    measurement_unit: null as unknown as number,  // и селектор единиц
-    quantity: '0',
-    cost_price: '0',
-    sale_price: '0',
-  });
-}
-function removeItem(idx: number) {
-  model.value.invoice_dish_items.splice(idx, 1);
-}
-
-function pad(n: number) { return n.toString().padStart(2, '0'); }
-
-function isoToLocalInput(iso: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
-  const yyyy = d.getFullYear();
-  const mm = pad(d.getMonth() + 1);
-  const dd = pad(d.getDate());
-  const hh = pad(d.getHours());
-  const mi = pad(d.getMinutes());
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
-}
-
-// вернём ISO со смещением (например, +05:00), как любит твой бэкенд
-function localInputToIsoWithOffset(local: string): string {
-  if (!local) return '';
-  // 'YYYY-MM-DDTHH:mm' трактуется как локальное время
-  const d = new Date(local);
-  if (isNaN(d.getTime())) return '';
-  const yyyy = d.getFullYear();
-  const mm = pad(d.getMonth() + 1);
-  const dd = pad(d.getDate());
-  const hh = pad(d.getHours());
-  const mi = pad(d.getMinutes());
-  const ss = pad(d.getSeconds());
-
-  // getTimezoneOffset: минуты, которые нужно ДОБАВИТЬ к локальному, чтобы получить UTC.
-  // Для Asia/Almaty (UTC+5) offset будет -300.
-  const offMin = -d.getTimezoneOffset();
-  const sign = offMin >= 0 ? '+' : '-';
-  const oh = pad(Math.floor(Math.abs(offMin) / 60));
-  const om = pad(Math.abs(offMin) % 60);
-
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}${sign}${oh}:${om}`;
-}
-
-// двусторонняя «прокладка» под datetime-local
-const dateLocal = computed<string>({
-  get: () => isoToLocalInput(model.value?.date ?? ''),
-  set: (v) => {
-    if (!model.value) model.value = defaultModel();
-    model.value.date = localInputToIsoWithOffset(v);
-  },
-});
-
-/** ===== Поставщик: показ имени + диалог выбора ===== */
-async function loadSupplierName(id: number | null) {
-  if (!id) { supplierName.value = ''; return; }
-  // тянем одну запись (метод есть в сторе)
-  const c = await contractorsStore.fetchOne(id);
-  supplierName.value = c?.name ?? '';
-}
-
-function onContractorSelected(c: { id: number; name: string }) {
-  model.value.supplier = c.id;
-  supplierName.value = c.name;
-}
-
-function clearSupplier() {
-  model.value.supplier = null;
-  supplierName.value = '';
-}
-
-function normalizeItems() {
-  // приводим поле к числовому ID, если вдруг пришёл объект
-  model.value.invoice_dish_items = (model.value.invoice_dish_items || []).map(it => ({
-    ...it,
-    dish: objId(it.dish),                 // было: number | object → стало: number | null
-    measurement_unit: objId(it.measurement_unit),
-  }));
-}
-
-/** ===== Жизненный цикл ===== */
-onMounted(async () => {
-  // для селекта склада
-  if (!warehousesStore.warehouses.length) {
-    await warehousesStore.fetchRecords(1);
-  }
-  // если форма открыта в режиме редактирования
-  await loadSupplierName(objId(model.value.supplier));
-  normalizeItems();
-});
-
-// если родитель когда-то заменит массив целиком
-// watch(() => model.value.invoice_dish_items, () => normalizeItems(), { deep: false });
-
-// watch(() => model.value.supplier, (id) => {
-//   loadSupplierName(objId(id));
-// });
-
-/** ===== Сабмит ===== */
-// Нормализация payload: dish/measurement_unit всегда ID
-function toPayload(m: IncomingInvoiceFormModel) {
-  return {
-    date: m.date,
-    accepted: m.accepted,
-    warehouse: objId(m.warehouse),
-    supplier: objId(m.supplier),
-    commentary: m.commentary,
-    shipping_cost: m.shipping_cost,
-    paid_amount: m.paid_amount,
-    invoice_dish_items: (m.invoice_dish_items || []).map(it => ({
-      id: it.id,
-      dish: objId(it.dish),
-      measurement_unit: objId(it.measurement_unit),
-      quantity: it.quantity,
-      cost_price: it.cost_price,
-      sale_price: it.sale_price,
-    })),
-  };
-}
-
-function onSubmit() {
-  emit('submit', toPayload(model.value));
-}
-</script>
-
 <template>
-  <form class="space-y-6" @submit.prevent="onSubmit">
-    <!-- Общие поля -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Дата -->
-      <div class="space-y-1">
-        <label class="block text-sm text-gray-600">Дата и время</label>
-        <input
-            v-model="dateLocal"
-            type="datetime-local"
-            class="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900"
-        />
-      </div>
-
-      <!-- Статус -->
-      <div class="space-y-1">
-        <label class="block text-sm text-gray-600">Статус</label>
-        <div class="h-10 flex items-center gap-2 rounded-lg border border-gray-300 px-3">
-          <input id="accepted" v-model="model.accepted" type="checkbox" class="rounded" />
-          <label for="accepted" class="text-sm">Проведён (принят)</label>
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <!-- Верхняя часть формы (шапка документа) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- КОЛОНКА 1 -->
+      <div class="space-y-6">
+        <!-- Дата -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ $t('date.item') }}</label>
+          <input type="datetime-local" v-model="formData.date" :disabled="isViewMode" class="mt-1 block w-full p-2 border rounded-md disabled:bg-gray-100">
+        </div>
+        <!-- Склад -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ $t('warehouse.item') }}</label>
+          <select v-model="formData.warehouse" :disabled="isViewMode" class="mt-1 block w-full p-2 border rounded-md disabled:bg-gray-100">
+            <option :value="null" disabled>{{ $t('messages.select') }}</option>
+            <option v-for="w in warehouseStore.warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
+          </select>
+        </div>
+        <!-- Поставщик -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ $t('supplier.item') }}</label>
+          <div class="mt-1 flex rounded-md shadow-sm">
+            <input type="text" readonly :value="supplierName" class="p-2 block w-full rounded-none rounded-l-md bg-gray-50" />
+            <button v-if="!isViewMode" @click="showContractorDialog = true" type="button" class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100">
+              <Search class="h-5 w-5 text-gray-400" />
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Склад -->
-      <div class="space-y-1">
-        <label class="block text-sm text-gray-600">Склад</label>
-        <select
-            v-model="model.warehouse"
-            class="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900"
-        >
-          <option :value="null">— Выберите склад —</option>
-          <option v-for="w in warehousesStore.warehouses" :key="w.id" :value="w.id">
-            {{ w.name }}
-          </option>
-        </select>
+      <!-- КОЛОНКА 2 -->
+      <div class="space-y-6">
+        <!-- Сумма по документу (только просмотр) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ $t('amount') }}</label>
+          <input type="number" step="0.01" v-model.number="formData.amount" :disabled="isViewMode" class="mt-1 block w-full p-2 border rounded-md disabled:bg-gray-100">
+        </div>
+        <!-- Стоимость доставки (редактируемое) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ $t('shipping_cost') }}</label>
+          <input type="number" step="0.01" v-model.number="formData.shipping_cost" :disabled="isViewMode" class="mt-1 block w-full p-2 border rounded-md disabled:bg-gray-100">
+        </div>
+        <!-- Итого к оплате (только просмотр) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ $t('paid_amount') }}</label>
+          <input type="number" step="0.01" v-model.number="formData.paid_amount" :disabled="isViewMode" class="mt-1 block w-full p-2 border rounded-md disabled:bg-gray-100">
+        </div>
       </div>
 
-      <!-- Поставщик (диалог под кнопкой) -->
-      <div class="space-y-1">
-        <label class="block text-sm text-gray-600">Поставщик</label>
-        <div class="flex items-center gap-2">
-          <input
-              :value="supplierName"
-              readonly
-              class="flex-1 rounded-lg border-gray-300 bg-gray-50 focus:border-gray-900 focus:ring-gray-900"
-              placeholder="Не выбран"
-          />
-          <button
-              type="button"
-              class="rounded-lg px-3 py-2 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800"
-              @click="isContractorDialogOpen = true"
-          >
-            Выбрать
-          </button>
-          <button
-              v-if="model.supplier"
-              type="button"
-              class="rounded-lg px-3 py-2 text-sm font-medium border hover:bg-gray-50"
-              @click="clearSupplier"
-              title="Очистить"
-          >
-            Очистить
-          </button>
+      <!-- КОЛОНКА 3 -->
+      <div class="space-y-6">
+        <!-- Автор (только просмотр) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ $t('author') }}</label>
+          <input type="text" :value="formData.author" disabled class="mt-1 block w-full p-2 border rounded-md disabled:bg-gray-100">
         </div>
-        <input type="hidden" name="supplier" :value="objId(model.supplier) ?? ''" />
+        <!-- Статус -->
+        <div class="pt-7">
+          <input type="checkbox" v-model="formData.accepted" id="accepted" :disabled="isViewMode" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:bg-gray-100">
+          <label for="accepted" class="ml-2 text-sm text-gray-900">{{ $t('status.accepted') }}</label>
+        </div>
       </div>
 
       <!-- Комментарий -->
-      <div class="md:col-span-2 space-y-1">
-        <label class="block text-sm text-gray-600">Комментарий</label>
-        <textarea
-            v-model="model.commentary"
-            rows="2"
-            class="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900"
-        />
-      </div>
-
-      <!-- Стоимости -->
-      <div class="space-y-1">
-        <label class="block text-sm text-gray-600">Стоимость доставки</label>
-        <input
-            v-model="model.shipping_cost"
-            type="number"
-            step="0.01"
-            class="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 text-right tabular-nums"
-        />
-      </div>
-      <div class="space-y-1">
-        <label class="block text-sm text-gray-600">Оплачено</label>
-        <input
-            v-model="model.paid_amount"
-            type="number"
-            step="0.01"
-            class="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 text-right tabular-nums"
-        />
+      <div class="md:col-span-3">
+        <label class="block text-sm font-medium text-gray-700">{{ $t('commentary') }}</label>
+        <textarea v-model="formData.commentary" :disabled="isViewMode" rows="2" class="mt-1 block w-full p-2 border rounded-md disabled:bg-gray-100"></textarea>
       </div>
     </div>
 
-    <!-- Табличная часть: позиции -->
-    <div class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-semibold">Позиции накладной</h3>
-        <button
-            type="button"
-            class="rounded-lg px-3 py-2 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800"
-            @click="addItem"
-        >
-          + Добавить позицию
-        </button>
-      </div>
+    <!-- Табличная часть -->
+    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('invoiceItems') }}</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead>
+        <tr>
+          <th class="w-2/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('dish.item') }}</th>
+          <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('measurementUnit.item') }}</th>
+          <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('quantity') }}</th>
+          <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('costPrice') }}</th>
+          <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('salePrice') }}</th>
+          <th v-if="!isViewMode" class="w-auto px-2 py-2"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(item, index) in formData.invoice_dish_items" :key="index">
+          <td class="p-1"><SearchableSelect v-model="item.dish" :store="dishStore" results-key="dishes" :search-field="`name_${locale}`" :display-field="`name_${locale}`" :placeholder="$t('dish.searchPlaceholder')" :disabled="isViewMode" /></td>
+          <td class="p-1"><SearchableSelect v-model="item.measurement_unit" :store="measurementUnitsStore" results-key="measurementUnits" :search-field="`name_${locale}`" :display-field="`name_${locale}`" :placeholder="$t('measurementUnit.searchPlaceholder')" :disabled="isViewMode" /></td>
+          <td class="p-1"><input type="number" step="0.01" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border rounded-md disabled:bg-gray-100" /></td>
+          <td class="p-1"><input type="number" step="0.01" v-model.number="item.cost_price" :disabled="isViewMode" class="w-full p-2 border rounded-md disabled:bg-gray-100" /></td>
+          <td class="p-1"><input type="number" step="0.01" v-model.number="item.sale_price" :disabled="isViewMode" class="w-full p-2 border rounded-md disabled:bg-gray-100" /></td>
+          <td v-if="!isViewMode" class="p-1 text-center"><button @click="removeRow(index)" class="text-red-500 hover:text-red-700"><Trash2 class="w-5 h-5" /></button></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <button v-if="!isViewMode" @click="addRow" class="mt-4 px-4 py-2 border border-dashed rounded-md text-sm text-indigo-600 hover:bg-indigo-50">
+      {{ $t('actions.addRow') }}
+    </button>
 
-      <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="bg-gray-50 text-gray-600">
-            <tr>
-              <th class="px-3 py-2 text-left font-medium">Блюдо (ID)</th>
-              <th class="px-3 py-2 text-left font-medium">Ед. изм. (ID)</th>
-              <th class="px-3 py-2 text-right font-medium">Кол-во</th>
-              <th class="px-3 py-2 text-right font-medium">Себестоимость</th>
-              <th class="px-3 py-2 text-right font-medium">Цена продажи</th>
-              <th class="px-3 py-2 text-right font-medium">Удалить</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr
-                v-for="(it, idx) in model.invoice_dish_items"
-                :key="it.id ?? idx"
-                class="border-t"
-            >
-              <td class="px-3 py-2">
-                <!-- Пока ввод ID; позже заменим на селектор блюд -->
-                <input
-                    v-model.number="(it.dish as any)"
-                    type="number"
-                    class="w-28 rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900"
-                />
-              </td>
-              <td class="px-3 py-2">
-                <!-- Пока ввод ID; позже заменим на селектор единиц -->
-                <input
-                    v-model.number="(it.measurement_unit as any)"
-                    type="number"
-                    class="w-28 rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900"
-                />
-              </td>
-              <td class="px-3 py-2">
-                <input
-                    v-model="it.quantity"
-                    type="number"
-                    step="0.01"
-                    class="w-28 rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 text-right tabular-nums"
-                />
-              </td>
-              <td class="px-3 py-2">
-                <input
-                    v-model="it.cost_price"
-                    type="number"
-                    step="0.01"
-                    class="w-28 rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 text-right tabular-nums"
-                />
-              </td>
-              <td class="px-3 py-2">
-                <input
-                    v-model="it.sale_price"
-                    type="number"
-                    step="0.01"
-                    class="w-28 rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 text-right tabular-nums"
-                />
-              </td>
-              <td class="px-3 py-2 text-right">
-                <button
-                    type="button"
-                    class="rounded-lg px-2 py-1 text-xs font-medium border hover:bg-gray-50"
-                    @click="removeItem(idx)"
-                    title="Удалить строку"
-                >
-                  ✕
-                </button>
-              </td>
-            </tr>
-
-            <tr v-if="model.invoice_dish_items.length === 0">
-              <td colspan="6" class="px-3 py-6 text-center text-gray-500">
-                Позиции не добавлены
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="flex items-center justify-end gap-6 border-t px-4 py-3 text-sm">
-          <div class="text-gray-600">
-            Промежуточный итог: <span class="font-medium tabular-nums">{{ itemsTotal.toFixed(2) }}</span>
-          </div>
-          <div class="text-gray-600">
-            Доставка: <span class="font-medium tabular-nums">{{ (parseFloat(model.shipping_cost || '0') || 0).toFixed(2) }}</span>
-          </div>
-          <div class="text-gray-900 font-semibold">
-            Итого к оплате: <span class="tabular-nums">
-              {{ (itemsTotal + (parseFloat(model.shipping_cost || '0') || 0)).toFixed(2) }}
-            </span>
-          </div>
-        </div>
-      </div>
+    <div v-if="!isViewMode" class="flex justify-end space-x-4 mt-8 pt-4 border-t">
+      <NuxtLink :to="localePath('/incoming-invoices')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">{{ $t('actions.cancel') }}</NuxtLink>
+      <button @click="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">{{ $t('actions.save') }}</button>
     </div>
 
-    <!-- Кнопки -->
-    <div class="flex items-center justify-end gap-2">
-      <button
-          type="button"
-          class="rounded-lg px-3 py-2 text-sm font-medium border hover:bg-gray-50"
-          @click="$emit('cancel')"
-      >
-        Отмена
-      </button>
-      <button
-          type="submit"
-          :disabled="props.disabled"
-          class="rounded-lg px-3 py-2 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
-      >
-        {{ props.submitLabel ?? 'Сохранить' }}
-      </button>
-    </div>
-
-    <!-- Диалог выбора контрагента -->
-    <ContractorPickerDialog
-        v-model:open="isContractorDialogOpen"
-        @select="onContractorSelected"
-    />
-  </form>
+    <ContractorSelectDialog v-model="showContractorDialog" @select="handleContractorSelect" />
+  </div>
 </template>
 
-<style scoped>
-.tabular-nums { font-variant-numeric: tabular-nums; }
-</style>
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useWarehouseStore } from '~/stores/warehouses';
+import { useDishStore } from '~/stores/dishes';
+import { useMeasurementUnitsStore } from '~/stores/measurementUnits';
+import type { IncomingInvoiceDetail } from '~/stores/incomingInvoices';
+import type { Contractor } from '~/stores/contractors';
+import SearchableSelect from '~/components/fields/SearchableSelect.vue';
+import ContractorSelectDialog from '~/components/dialogs/ContractorSelectDialog.vue';
+import { Search, Trash2 } from 'lucide-vue-next';
+
+const props = defineProps<{
+  initialData?: IncomingInvoiceDetail | null;
+  isViewMode?: boolean;
+}>();
+const emit = defineEmits(['submit']);
+
+const { locale } = useI18n();
+const localePath = useLocalePath();
+const warehouseStore = useWarehouseStore();
+const dishStore = useDishStore();
+const measurementUnitsStore = useMeasurementUnitsStore();
+
+const showContractorDialog = ref(false);
+const supplierName = ref('');
+
+const formData = ref<Partial<IncomingInvoiceDetail>>({
+  date: new Date().toISOString().slice(0, 16),
+  accepted: true,
+  warehouse: null,
+  supplier: null,
+  commentary: '',
+  shipping_cost: 0,
+  invoice_dish_items: [],
+  amount: 0,
+  paid_amount: 0,
+  author: '',
+});
+
+watch(() => props.initialData, (data) => {
+  if (data) {
+    formData.value = JSON.parse(JSON.stringify(data));
+    if (typeof data.supplier === 'object' && data.supplier && 'name' in data.supplier) {
+      supplierName.value = (data.supplier as { name: string }).name;
+    }
+  }
+}, { immediate: true, deep: true });
+
+function addRow() {
+  formData.value.invoice_dish_items?.push({
+    dish: null,
+    measurement_unit: null,
+    quantity: 1,
+    cost_price: 0,
+    sale_price: 0,
+  });
+}
+
+function removeRow(index: number) {
+  formData.value.invoice_dish_items?.splice(index, 1);
+}
+
+function handleContractorSelect(contractor: Contractor) {
+  formData.value.supplier = contractor.id;
+  supplierName.value = contractor.name;
+}
+
+function submit() {
+  const payload = JSON.parse(JSON.stringify(formData.value));
+  payload.invoice_dish_items = payload.invoice_dish_items.map(item => ({
+    ...item,
+    dish: typeof item.dish === 'object' && item.dish !== null ? item.dish.id : item.dish,
+    measurement_unit: typeof item.measurement_unit === 'object' && item.measurement_unit !== null ? item.measurement_unit.id : item.measurement_unit,
+  }));
+  emit('submit', payload);
+}
+
+if (warehouseStore.warehouses.length === 0) {
+  warehouseStore.fetchRecords(1);
+}
+</script>

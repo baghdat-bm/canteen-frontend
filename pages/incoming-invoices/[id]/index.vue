@@ -1,40 +1,55 @@
-<script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import IncomingInvoiceForm from '~/components/incoming-invoices/IncomingInvoiceForm.vue';
-import { useIncomingInvoicesStore } from '~/stores/incomingInvoices';
-import type { IncomingInvoiceDetail } from '~/stores/incomingInvoices';
-
-const route = useRoute();
-const router = useRouter();
-const store = useIncomingInvoicesStore();
-
-const model = ref<IncomingInvoiceDetail | null>(null);
-
-onMounted(async () => {
-  const id = Number(route.params.id);
-  await store.fetchRecord(id);
-  model.value = store.invoice;
-});
-</script>
-
 <template>
-  <div class="p-4 lg:p-6 space-y-4">
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-semibold">Приходная накладная</h1>
-      <NuxtLink
-          :to="`/incoming-invoices/${$route.params.id}/edit`"
-          class="px-3 py-2 text-sm rounded-lg border hover:bg-gray-50"
-      >
-        Редактировать
-      </NuxtLink>
+  <div class="container mx-auto">
+    <!-- Заголовок страницы и кнопки -->
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">
+        {{ $t('incomingInvoice.item') }} №{{ route.params.id }}
+      </h1>
+      <div class="flex space-x-2">
+        <NuxtLink :to="localePath('/incoming-invoices')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
+          {{ $t('actions.toList') }}
+        </NuxtLink>
+        <NuxtLink :to="localePath(`/incoming-invoices/${route.params.id}/edit`)" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+          {{ $t('actions.edit') }}
+        </NuxtLink>
+      </div>
     </div>
 
-    <div v-if="!model" class="text-gray-500">Загрузка…</div>
+    <!-- Индикатор загрузки -->
+    <div v-if="store.isLoading" class="text-center p-8 bg-white rounded-lg shadow">
+      <BaseSpinner />
+      <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
+    </div>
+
+    <!-- Сообщение об ошибке -->
+    <div v-else-if="!store.invoice" class="text-center p-8 bg-white rounded-lg shadow text-red-500">
+      {{ $t('messages.fetchErrorItem') }}
+    </div>
+
+    <!-- Форма в режиме просмотра -->
     <IncomingInvoiceForm
         v-else
-        mode="view"
-        :model="model"
+        :initial-data="store.invoice"
+        :is-view-mode="true"
     />
   </div>
 </template>
+
+<script setup lang="ts">
+import { useRoute } from 'vue-router';
+import { onMounted } from 'vue';
+import { useIncomingInvoicesStore } from '~/stores/incomingInvoices';
+import IncomingInvoiceForm from '~/components/incoming-invoices/IncomingInvoiceForm.vue';
+import BaseSpinner from '~/components/BaseSpinner.vue';
+
+const route = useRoute();
+const store = useIncomingInvoicesStore();
+const localePath = useLocalePath();
+
+onMounted(() => {
+  const id = Number(route.params.id);
+  if (id) {
+    store.fetchRecord(id);
+  }
+});
+</script>

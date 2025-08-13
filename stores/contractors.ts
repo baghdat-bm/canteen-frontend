@@ -79,15 +79,15 @@ export const useContractorsStore = defineStore('contractors', () => {
                 params.append('page_size', pageSize.value.toString());
             }
 
-            console.log(`contractors request params: ${params}`);
-
+            // console.log(`contractors request params: ${params}`);
             const urlStr = `/contractors/?${params.toString()}`;
+            // console.log(`urlStr: ${urlStr}`);
             const response = await api.refs<PaginatedResponse<Contractor>>(urlStr, { method: 'get' });
 
             contractors.value = response.results;
             totalRecords.value = response.count;
 
-        } catch (error) {            
+        } catch (error) {
             const errText = "Ошибка при загрузке контрагентов";
             console.error(errText, error);
             uiStore.showNotification({

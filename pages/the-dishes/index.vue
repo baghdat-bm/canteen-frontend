@@ -88,7 +88,7 @@
 import {ref, onMounted} from 'vue';
 import {useI18n} from 'vue-i18n';
 import BaseSpinner from '~/components/BaseSpinner.vue';
-import ConfirmDialog from '~/components/ConfirmDialog.vue';
+import ConfirmDialog from '~/components/dialogs/ConfirmDialog.vue';
 import {useDishStore, type Dish} from '~/stores/dishes';
 import {useDishCategoriesStore, type DishCategory} from '~/stores/dishCategories';
 import {Pencil, Trash2} from 'lucide-vue-next';

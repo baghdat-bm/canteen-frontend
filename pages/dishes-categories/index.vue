@@ -124,7 +124,7 @@ import { useDishCategoriesStore } from '~/stores/dishCategories';
 import type {DishCategory} from "~/stores/dishCategories";
 import { useMeasurementUnitsStore } from '~/stores/measurementUnits';
 import { Pencil, Trash2 } from 'lucide-vue-next';
-import ConfirmDialog from "~/components/ConfirmDialog.vue";
+import ConfirmDialog from "~/components/dialogs/ConfirmDialog.vue";
 import BasePagination from "~/components/BasePagination.vue";
 
 // --- Подключение composables ---

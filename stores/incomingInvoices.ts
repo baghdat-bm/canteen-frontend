@@ -5,97 +5,78 @@ import {api, type PaginatedResponse} from '~/utils/apiClient';
 import {useUiStore} from './ui.js';
 import {useNuxtApp} from '#app';
 
-/** ================== Типы под ваше API ================== */
+/** ================== Типы ================== */
 
-// Для списка накладных (warehouse/supplier — вложенные объекты)
 interface WarehouseLite { id: number; name: string }
 interface SupplierLite { id: number; name: string; bin?: string }
+export interface DishLite { id: number; name_kz?: string; name_ru?: string; }
+export interface MeasurementUnitLite { id: number; name_kz?: string; name_ru?: string; }
 
 export interface IncomingInvoiceList {
     id: number;
-    date: string;           // ISO
+    date: string;
     accepted: boolean;
     warehouse: WarehouseLite;
     supplier: SupplierLite;
     commentary: string;
-    amount: string;
-    shipping_cost: string;
-    paid_amount: string;
+    amount: number;
+    shipping_cost: number;
+    paid_amount: number;
     author: string;
-}
-
-// Для детальной накладной (warehouse/supplier — ID)
-export interface DishLite {
-    id: number;
-    name_kz?: string;
-    name_ru?: string;
-    name_en?: string;
-}
-export interface MeasurementUnitLite {
-    id: number;
-    name_kz?: string;
-    name_ru?: string;
-    name_en?: string;
 }
 
 export interface IncomingInvoiceItem {
     id?: number;
-    dish: DishLite | number;                 // в ответе — объект, в payload — ID
-    quantity: string;                        // decimal приходит строкой
+    dish: DishLite | number;
+    quantity: number;
     measurement_unit: MeasurementUnitLite | number;
-    cost_price: string;
-    sale_price: string;
+    cost_price: number;
+    sale_price: number;
 }
 
 export interface IncomingInvoiceDetail {
     id: number;
-    date: string;            // ISO
+    date: string;
     accepted: boolean;
-    warehouse: number;       // ID
-    supplier: number;        // ID
+    warehouse: number;
+    supplier: number;
     commentary: string;
-    amount: string;
-    shipping_cost: string;
-    paid_amount: string;
+    amount: number;
+    shipping_cost: number;
+    paid_amount: number;
     author: string;
     invoice_dish_items: IncomingInvoiceItem[];
 }
 
-// Пэйлоад на создание/обновление (ID-шники вместо объектов)
 export type IncomingInvoicePayload = Omit<
     IncomingInvoiceDetail,
-    'id' | 'author' | 'amount' | 'invoice_dish_items'
+    'id' | 'author' | 'amount' | 'paid_amount'
 > & {
     invoice_dish_items: Array<{
         id?: number;
         dish: number;
         measurement_unit: number;
-        quantity: string;
-        cost_price: string;
-        sale_price: string;
+        quantity: number;
+        cost_price: number;
+        sale_price: number;
     }>;
 };
 
 /** ================== Store ================== */
 
 export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
-    // --- State ---
     const invoices = ref<IncomingInvoiceList[]>([]);
     const invoice = ref<IncomingInvoiceDetail | null>(null);
     const isLoading = ref(false);
-
-    // --- Пагинация/поиск ---
     const totalRecords = ref(0);
     const pageSize = ref(20);
     const currentPage = ref(1);
-
-    // подберите имена фильтров под ваш бэкенд (примерные)
     const searchQuery = ref<{
         supplier?: number | null;
         warehouse?: number | null;
         accepted?: boolean | null;
-        date_from?: string | null;   // YYYY-MM-DD
-        date_to?: string | null;     // YYYY-MM-DD
+        date_from?: string | null;
+        date_to?: string | null;
     }>({
         supplier: null,
         warehouse: null,
@@ -119,6 +100,7 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
             commentary: detail.commentary,
             shipping_cost: detail.shipping_cost,
             paid_amount: detail.paid_amount,
+            amount: detail.amount,
             invoice_dish_items: (detail.invoice_dish_items ?? []).map(it => ({
                 id: it.id,
                 dish: typeof it.dish === 'number' ? it.dish : it.dish.id,
@@ -135,22 +117,15 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
 
     // --- Actions ---
 
-    /** Список с пагинацией и фильтрами */
     async function fetchRecords(page: number = 1) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
-
         isLoading.value = true;
         currentPage.value = page;
-
         try {
             const params = new URLSearchParams();
-
-            // ВСЕГДА добавляем page и page_size
             params.set('page', page.toString());
             params.set('page_size', pageSize.value.toString());
-
-            // Фильтры (добавляйте/переименуйте под ваш бэк)
             if (searchQuery.value.supplier)  params.set('supplier', String(searchQuery.value.supplier));
             if (searchQuery.value.warehouse) params.set('warehouse', String(searchQuery.value.warehouse));
             if (searchQuery.value.accepted !== null && searchQuery.value.accepted !== undefined) {
@@ -175,13 +150,11 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
         }
     }
 
-    /** Детальная накладная */
     async function fetchRecord(id: number) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
         isLoading.value = true;
         invoice.value = null;
-
         try {
             invoice.value = await api.docs<IncomingInvoiceDetail>(`/incoming-invoices/${id}/`, {method: 'get'});
         } catch (error) {
@@ -193,15 +166,12 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
     }
 
     /** Создание */
-    async function createRecord(payloadOrDetail: IncomingInvoicePayload | IncomingInvoiceDetail) {
+    async function createRecord(detail: IncomingInvoiceDetail) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
 
         try {
-            const payload =
-                (payloadOrDetail as any).invoice_dish_items && typeof (payloadOrDetail as any).invoice_dish_items[0]?.dish !== 'object'
-                    ? (payloadOrDetail as IncomingInvoicePayload)
-                    : toPayload(payloadOrDetail as IncomingInvoiceDetail);
+            const payload = toPayload(detail);
 
             const created = await api.docs<IncomingInvoiceDetail>('/incoming-invoices/', {
                 method: 'POST',
@@ -225,15 +195,12 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
     }
 
     /** Обновление */
-    async function updateRecord(id: number, payloadOrDetail: IncomingInvoicePayload | IncomingInvoiceDetail) {
+    async function updateRecord(id: number, detail: IncomingInvoiceDetail) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
 
         try {
-            const payload =
-                (payloadOrDetail as any).invoice_dish_items && typeof (payloadOrDetail as any).invoice_dish_items[0]?.dish !== 'object'
-                    ? (payloadOrDetail as IncomingInvoicePayload)
-                    : toPayload(payloadOrDetail as IncomingInvoiceDetail);
+            const payload = toPayload(detail);
 
             const updated = await api.docs<IncomingInvoiceDetail>(`/incoming-invoices/${id}/`, {
                 method: 'PUT',
@@ -296,11 +263,8 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
     }
 
     return {
-        // state
         invoices, invoice, isLoading, totalRecords, pageSize, currentPage, searchQuery,
-        // getters
         totalPages,
-        // actions
-        fetchRecords, fetchRecord, createRecord, updateRecord, deleteRecord, reset,
+        fetchRecords, fetchRecord, createRecord, updateRecord, deleteRecord, reset
     };
 });

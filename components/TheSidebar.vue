@@ -155,7 +155,7 @@ import { useUiStore } from '~/stores/ui';
 import { useAuthStore } from '~/stores/auth';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import ConfirmDialog from "~/components/ConfirmDialog.vue";
+import ConfirmDialog from "~/components/dialogs/ConfirmDialog.vue";
 
 // --- Подключение composables ---
 const route = useRoute();

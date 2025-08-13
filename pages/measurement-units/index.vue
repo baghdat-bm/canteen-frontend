@@ -134,7 +134,7 @@ import { useMeasurementUnitsStore, type MeasurementUnit } from '~/stores/measure
 import { useI18n } from 'vue-i18n';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import BaseSpinner from '~/components/BaseSpinner.vue';
-import ConfirmDialog from "~/components/ConfirmDialog.vue";
+import ConfirmDialog from "~/components/dialogs/ConfirmDialog.vue";
 import BasePagination from "~/components/BasePagination.vue";
 
 // --- Подключение composables ---

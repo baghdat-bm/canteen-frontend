@@ -133,10 +133,11 @@ export const useDishStore = defineStore('dishes', () => {
                 params.append('page_size', pageSize.value.toString());
             }
 
-            console.log(`dishes request params: ${params}`);
-
-            const urlStr = `/dishes/?${params.toString()}`;            
+            const urlStr = `/dishes/?${params.toString()}`;
+            console.log(`dishes request urlStr: ${urlStr}`);
             const response = await api.refs<PaginatedResponse<Dish>>(urlStr, { method: 'get' });
+            // console.log(`response.results:`);
+            // console.log(response.results);
             dishes.value = response.results;
             totalRecords.value = response.count;
 

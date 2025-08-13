@@ -138,7 +138,7 @@ import BasePagination from '~/components/BasePagination.vue';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import ConfirmDialog from "~/components/ConfirmDialog.vue";
+import ConfirmDialog from "~/components/dialogs/ConfirmDialog.vue";
 import {ref} from "vue";
 
 // --- Подключение composables ---

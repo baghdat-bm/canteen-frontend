@@ -1,238 +1,243 @@
-<script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
-import { useIncomingInvoicesStore } from '~/stores/incomingInvoices';
-import { useWarehouseStore } from '~/stores/warehouses';
-import { useContractorsStore } from '~/stores/contractors';
-import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
-
-// Stores
-const invoicesStore = useIncomingInvoicesStore();
-const warehousesStore = useWarehouseStore();
-const contractorsStore = useContractorsStore();
-
-const {
-  invoices,
-  isLoading,
-  totalRecords,
-  pageSize,
-  currentPage,
-  totalPages,
-} = storeToRefs(invoicesStore);
-
-const { warehouses } = storeToRefs(warehousesStore);
-const { contractors } = storeToRefs(contractorsStore);
-
-// Фильтры (supplier, warehouse)
-const supplierId = ref<number | null>(null);
-const warehouseId = ref<number | null>(null);
-
-function applyFilters() {
-  invoicesStore.searchQuery.supplier = supplierId.value;
-  invoicesStore.searchQuery.warehouse = warehouseId.value;
-  invoicesStore.fetchRecords(1);
-}
-
-function resetFilters() {
-  supplierId.value = null;
-  warehouseId.value = null;
-
-  invoicesStore.searchQuery.supplier = null;
-  invoicesStore.searchQuery.warehouse = null;
-  invoicesStore.fetchRecords(1);
-}
-
-function changePage(page: number) {
-  if (page < 1 || page > totalPages.value) return;
-  invoicesStore.fetchRecords(page);
-}
-
-function fmtDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleString('ru-RU');
-  } catch {
-    return iso;
-  }
-}
-
-onMounted(async () => {
-  // Подтягиваем справочники (для селектов) и первый список накладных
-  await Promise.all([
-    warehousesStore.fetchRecords(1),
-    contractorsStore.fetchRecords(1),
-  ]);
-  await invoicesStore.fetchRecords(1);
-});
-</script>
-
 <template>
-  <div class="p-4 lg:p-6 space-y-4">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <h1 class="text-xl font-semibold">Приходные накладные</h1>
-
-      <div class="flex items-center gap-2">
-        <NuxtLink
-            to="/incoming-invoices/create"
-            class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition"
-        >
-          Создать накладную
-        </NuxtLink>
-      </div>
+  <div class="container mx-auto">
+    <div class="flex justify-between items-center mb-2">
+      <h1 class="text-2xl font-bold">{{ $t('incomingInvoice.itemList') }}</h1>
+      <NuxtLink :to="localePath('/incoming-invoices/create')"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+        {{ $t('create_new') }}
+      </NuxtLink>
     </div>
 
-    <!-- Filters -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white rounded-xl p-4 shadow-sm border">
-      <div class="md:col-span-1">
-        <label class="block text-sm text-gray-600 mb-1">Поставщик</label>
-        <select
-            v-model="supplierId"
-            class="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900"
-        >
-          <option :value="null">— Все —</option>
-          <option v-for="c in contractors" :key="c.id" :value="c.id">
-            {{ c.name }}
-          </option>
-        </select>
-      </div>
+    <!-- Панель фильтров -->
+    <div class="p-4 bg-white rounded-lg shadow mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Фильтр по дате -->
+        <DateRangePicker v-model="localSearchQuery.dates" />
 
-      <div class="md:col-span-1">
-        <label class="block text-sm text-gray-600 mb-1">Склад</label>
-        <select
-            v-model="warehouseId"
-            class="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900"
-        >
-          <option :value="null">— Все —</option>
-          <option v-for="w in warehouses" :key="w.id" :value="w.id">
-            {{ w.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="md:col-span-2 flex items-end gap-2">
-        <button
-            type="button"
-            @click="applyFilters"
-            class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition"
-        >
-          Применить
-        </button>
-        <button
-            type="button"
-            @click="resetFilters"
-            class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium border border-gray-300 hover:bg-gray-50 transition"
-        >
-          Сбросить
-        </button>
-      </div>
-    </div>
-
-    <!-- Table -->
-    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600">
-          <tr>
-            <th class="px-4 py-3 text-left font-medium">Дата</th>
-            <th class="px-4 py-3 text-left font-medium">Статус</th>
-            <th class="px-4 py-3 text-left font-medium">Склад</th>
-            <th class="px-4 py-3 text-left font-medium">Поставщик</th>
-            <th class="px-4 py-3 text-left font-medium">Комментарий</th>
-            <th class="px-4 py-3 text-right font-medium">Сумма</th>
-            <th class="px-4 py-3 text-right font-medium">Доставка</th>
-            <th class="px-4 py-3 text-right font-medium">Оплачено</th>
-            <th class="px-4 py-3 text-right font-medium">Действия</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-if="isLoading">
-            <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-              Загрузка…
-            </td>
-          </tr>
-          <tr
-              v-for="row in invoices"
-              :key="row.id"
-              class="border-t"
-          >
-            <td class="px-4 py-3">{{ fmtDate(row.date) }}</td>
-            <td class="px-4 py-3">
-                <span
-                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                    :class="row.accepted ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'"
-                >
-                  {{ row.accepted ? 'Проведён' : 'Черновик' }}
-                </span>
-            </td>
-            <td class="px-4 py-3">{{ row.warehouse?.name }}</td>
-            <td class="px-4 py-3">{{ row.supplier?.name }}</td>
-            <td class="px-4 py-3">
-              <span class="line-clamp-2">{{ row.commentary }}</span>
-            </td>
-            <td class="px-4 py-3 text-right tabular-nums">{{ row.amount }}</td>
-            <td class="px-4 py-3 text-right tabular-nums">{{ row.shipping_cost }}</td>
-            <td class="px-4 py-3 text-right tabular-nums">{{ row.paid_amount }}</td>
-            <td class="px-4 py-3 text-right">
-              <div class="inline-flex items-center gap-2">
-                <NuxtLink
-                    :to="`/incoming-invoices/${row.id}`"
-                    class="text-gray-700 hover:text-gray-900 underline underline-offset-2"
-                    title="Открыть"
-                >
-                  Откр.
-                </NuxtLink>
-                <NuxtLink
-                    :to="`/incoming-invoices/${row.id}/edit`"
-                    class="text-gray-700 hover:text-gray-900 underline underline-offset-2"
-                    title="Редактировать"
-                >
-                  Ред.
-                </NuxtLink>
-              </div>
-            </td>
-          </tr>
-
-          <tr v-if="!isLoading && invoices.length === 0">
-            <td colspan="9" class="px-4 py-6 text-center text-gray-500">
-              Ничего не найдено
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <div class="flex items-center justify-between border-t px-4 py-3 text-sm">
-        <div class="text-gray-600">
-          Всего: <span class="font-medium">{{ totalRecords }}</span>
+        <!-- Фильтр по складу -->
+        <div>
+          <label for="warehouse" class="block text-sm font-medium text-gray-700">{{ $t('warehouse.item') }}</label>
+          <select id="warehouse" v-model="localSearchQuery.warehouse" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            <option :value="null">{{ $t('all') }}</option>
+            <option v-for="warehouse in warehouseStore.warehouses" :key="warehouse.id" :value="warehouse.id">
+              {{ warehouse.name }}
+            </option>
+          </select>
         </div>
 
-        <div class="flex items-center gap-1">
-          <button
-              class="px-3 py-1.5 rounded-lg border hover:bg-gray-50 disabled:opacity-50"
-              :disabled="currentPage <= 1"
-              @click="changePage(currentPage - 1)"
-          >
-            Назад
-          </button>
-          <span class="px-2">
-            {{ currentPage }} / {{ totalPages }}
-          </span>
-          <button
-              class="px-3 py-1.5 rounded-lg border hover:bg-gray-50 disabled:opacity-50"
-              :disabled="currentPage >= totalPages"
-              @click="changePage(currentPage + 1)"
-          >
-            Вперёд
-          </button>
+        <!-- Фильтр по поставщику -->
+        <div>
+          <label for="supplier" class="block text-sm font-medium text-gray-700">{{ $t('supplier.item') }}</label>
+          <div class="mt-1 flex rounded-md shadow-sm">
+            <div class="relative flex items-stretch flex-grow focus-within:z-10">
+              <input
+                  type="text"
+                  readonly
+                  :value="selectedSupplierName"
+                  :placeholder="$t('supplier.notSelected')"
+                  class="p-2 block w-full rounded-none rounded-l-md border-gray-300 bg-gray-50"
+              />
+            </div>
+            <button @click="localSearchQuery.supplier = null; selectedSupplierName = ''" v-if="localSearchQuery.supplier" type="button" class="-ml-px relative inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+              <X class="h-5 w-5 text-gray-400" />
+            </button>
+            <button @click="showContractorDialog = true" type="button" class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100">
+              <Search class="h-5 w-5 text-gray-400" />
+              <span>{{ $t('actions.select') }}</span>
+            </button>
+          </div>
         </div>
       </div>
+      <!-- Кнопки управления фильтром -->
+      <div class="flex justify-end space-x-2 mt-4 pt-4 border-t">
+        <button @click="handleReset" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+          {{ $t('search.reset') }}
+        </button>
+        <button @click="handleSearch" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+          {{ $t('search.find') }}
+        </button>
+      </div>
     </div>
+
+    <!-- Индикатор загрузки -->
+    <div v-if="store.isLoading" class="bg-white rounded-lg shadow p-8 text-center">
+      <BaseSpinner />
+      <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
+    </div>
+
+    <!-- Сообщение, если нет данных -->
+    <div v-else-if="!store.invoices || store.invoices.length === 0" class="text-center text-gray-500 bg-white rounded-lg shadow p-8">
+      {{ $t('messages.noData') }}
+    </div>
+
+    <!-- Таблица с данными -->
+    <div v-else class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table class="min-w-full leading-normal">
+        <thead>
+        <tr>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('date.item') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('supplier.item') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('warehouse.item') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('amount') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('paid_amount') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('status') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('actions.operations') }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="invoice in store.invoices" :key="invoice.id" @click="viewInvoice(invoice.id)" class="cursor-pointer hover:bg-gray-100 transition-colors">
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.id }}</td>
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ formatDate(invoice.date) }}</td>
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.supplier.name }}</td>
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.warehouse.name }}</td>
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.amount }}</td>
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.paid_amount }}</td>
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">
+              <span :class="invoice.accepted ? 'text-green-600' : 'text-red-600'">
+                {{ invoice.accepted ? $t('status.accepted') : $t('status.notAccepted') }}
+              </span>
+          </td>
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">
+            <div class="flex items-center space-x-4">
+              <NuxtLink :to="localePath(`/incoming-invoices/${invoice.id}/edit`)" @click.stop class="text-indigo-600 hover:text-indigo-900">
+                <Pencil class="w-5 h-5"/>
+              </NuxtLink>
+              <button @click.stop="confirmDelete(invoice.id)" class="text-red-600 hover:text-red-900">
+                <Trash2 class="w-5 h-5"/>
+              </button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <!-- Пагинация -->
+      <BasePagination
+          :total-records="store.totalRecords"
+          :page-size="store.pageSize"
+          :current-page="store.currentPage"
+          :total-pages="store.totalPages"
+          :is-loading="store.isLoading"
+          @page-changed="goToPage"
+      />
+    </div>
+
+    <!-- Диалоговое окно выбора контрагента -->
+    <ContractorSelectDialog v-model="showContractorDialog" @select="handleContractorSelect" />
+
+    <!-- Диалоговое окно подтверждения удаления -->
+    <ConfirmDialog
+        v-model="showDeleteModal"
+        :title="$t('captions.confirmDelete')"
+        :message="$t('incomingInvoice.confirmDelete')"
+        :confirm-button-text="$t('actions.delete')"
+        @confirm="deleteItemConfirmed"
+    />
   </div>
 </template>
 
-<style scoped>
-.tabular-nums { font-variant-numeric: tabular-nums; }
-</style>
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useIncomingInvoicesStore } from '~/stores/incomingInvoices';
+import { useWarehouseStore } from '~/stores/warehouses';
+import { type Contractor } from '~/stores/contractors';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { Pencil, Trash2, Search, X } from 'lucide-vue-next';
+
+// Импорт компонентов
+import BaseSpinner from '~/components/BaseSpinner.vue';
+import BasePagination from '~/components/BasePagination.vue';
+import ConfirmDialog from '~/components/dialogs/ConfirmDialog.vue';
+import ContractorSelectDialog from '~/components/dialogs/ContractorSelectDialog.vue';
+import DateRangePicker from '~/components/dialogs/DateRangePicker.vue';
+
+// --- Инициализация ---
+const store = useIncomingInvoicesStore();
+const warehouseStore = useWarehouseStore();
+const router = useRouter();
+const localePath = useLocalePath();
+const { t } = useI18n();
+
+// --- Локальное состояние ---
+const showContractorDialog = ref(false);
+const showDeleteModal = ref(false);
+const itemToDeleteId = ref<number | null>(null);
+const selectedSupplierName = ref('');
+
+// Локальная копия фильтров для удобства
+const localSearchQuery = ref({
+  dates: { from: store.searchQuery.date_from, to: store.searchQuery.date_to },
+  warehouse: store.searchQuery.warehouse,
+  supplier: store.searchQuery.supplier,
+});
+
+// --- Функции ---
+
+function handleSearch() {
+  // Обновляем состояние в хранилище из локальной копии
+  store.searchQuery.date_from = localSearchQuery.value.dates.from;
+  store.searchQuery.date_to = localSearchQuery.value.dates.to;
+  store.searchQuery.warehouse = localSearchQuery.value.warehouse;
+  store.searchQuery.supplier = localSearchQuery.value.supplier;
+
+  store.fetchRecords(1); // Запускаем поиск с первой страницы
+}
+
+function handleReset() {
+  // Сбрасываем локальные фильтры
+  localSearchQuery.value = {
+    dates: { from: null, to: null },
+    warehouse: null,
+    supplier: null,
+  };
+  selectedSupplierName.value = '';
+  // Запускаем пустой поиск
+  handleSearch();
+}
+
+function goToPage(page: number) {
+  if (page >= 1 && page <= store.totalPages) {
+    store.fetchRecords(page);
+  }
+}
+
+function viewInvoice(id: number) {
+  router.push(localePath(`/incoming-invoices/${id}`));
+}
+
+function confirmDelete(id: number) {
+  itemToDeleteId.value = id;
+  showDeleteModal.value = true;
+}
+
+async function deleteItemConfirmed() {
+  if (itemToDeleteId.value) {
+    await store.deleteRecord(itemToDeleteId.value);
+    // fetchRecords уже вызывается внутри deleteRecord, поэтому список обновится
+  }
+}
+
+function handleContractorSelect(contractor: Contractor) {
+  localSearchQuery.value.supplier = contractor.id;
+  selectedSupplierName.value = contractor.name;
+  showContractorDialog.value = false;
+}
+
+function formatDate(dateString: string) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+// --- Жизненный цикл ---
+onMounted(() => {
+  // Загружаем данные при первой загрузке страницы
+  store.fetchRecords(store.currentPage);
+  // Загружаем склады для фильтра (если их еще нет)
+  if (warehouseStore.warehouses.length === 0) {
+    warehouseStore.fetchRecords(1); // Загружаем первую страницу складов
+  }
+});
+</script>
