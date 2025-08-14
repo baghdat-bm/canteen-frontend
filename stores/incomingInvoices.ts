@@ -50,7 +50,7 @@ export interface IncomingInvoiceDetail {
 
 export type IncomingInvoicePayload = Omit<
     IncomingInvoiceDetail,
-    'id' | 'author' | 'amount' | 'paid_amount'
+    'id' | 'author'
 > & {
     invoice_dish_items: Array<{
         id?: number;

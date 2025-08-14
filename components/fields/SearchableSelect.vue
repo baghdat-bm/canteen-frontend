@@ -1,19 +1,19 @@
 <template>
   <div class="relative" ref="wrapper">
-    <!-- Input field, к которому будем привязывать позицию -->
+    <!-- Input field -->
     <input
         ref="inputRef"
         type="text"
         v-model="searchTerm"
         :placeholder="placeholder"
-        @keydown.enter.prevent="performSearch"
+        @keydown="handleKeydown"
         @focus="onFocus"
         class="w-full p-2 border rounded-md"
         :class="{ 'bg-gray-100': disabled }"
         :disabled="disabled"
     />
 
-    <!-- Телепортируем выпадающий список в конец body -->
+    <!-- Teleported dropdown -->
     <Teleport to="body">
       <Transition
           enter-active-class="transition-all duration-100 ease-out"
@@ -23,7 +23,6 @@
           leave-from-class="opacity-100 translate-y-0"
           leave-to-class="opacity-0 -translate-y-2"
       >
-        <!-- У списка теперь динамические стили для позиционирования -->
         <div
             v-if="showDropdown && searchResults.length > 0"
             :style="dropdownStyle"
@@ -31,9 +30,11 @@
         >
           <ul>
             <li
-                v-for="item in searchResults"
+                v-for="(item, index) in searchResults"
                 :key="item.id"
                 @click="selectItem(item)"
+                @mouseenter="highlightedIndex = index"
+                :class="{ 'bg-indigo-100': index === highlightedIndex }"
                 class="px-3 py-2 cursor-pointer hover:bg-gray-100"
             >
               {{ item[displayField] }}
@@ -46,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { onClickOutside } from '@vueuse/core';
 
 // --- Props & Emits ---
@@ -68,36 +69,76 @@ const showDropdown = ref(false);
 const wrapper = ref(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 const dropdownStyle = ref({});
+const highlightedIndex = ref(-1); // Индекс для выделенного элемента
 
-// --- Логика позиционирования ---
+// --- Positioning Logic ---
 function updateDropdownPosition() {
   if (!inputRef.value || !showDropdown.value) return;
   const rect = inputRef.value.getBoundingClientRect();
   dropdownStyle.value = {
-    // position: 'absolute' теперь в классе
-    top: `${rect.bottom + window.scrollY + 4}px`, // +4px для небольшого отступа
+    top: `${rect.bottom + window.scrollY + 4}px`,
     left: `${rect.left + window.scrollX}px`,
     width: `${rect.width}px`,
   };
 }
 
-// --- Обработчики событий ---
+watch(showDropdown, (isVisible) => {
+  if (isVisible) {
+    nextTick(() => {
+      updateDropdownPosition();
+    });
+  }
+});
+
+// --- Event Handlers ---
 function hide() {
   showDropdown.value = false;
+  highlightedIndex.value = -1; // Сбрасываем выделение при закрытии
 }
 
 function onFocus() {
-  // Можно показывать список с последними результатами при фокусе, если они есть
   if (searchResults.value.length > 0) {
-    updateDropdownPosition();
     showDropdown.value = true;
   }
 }
 
-// Добавляем и удаляем слушатели событий окна для подстройки позиции
+// --- Keyboard Navigation ---
+async function handleKeydown(event: KeyboardEvent) {
+  // Если выпадающий список видим, управляем навигацией
+  if (showDropdown.value && searchResults.value.length > 0) {
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        highlightedIndex.value = (highlightedIndex.value + 1) % searchResults.value.length;
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        if (highlightedIndex.value <= 0) {
+          highlightedIndex.value = searchResults.value.length - 1;
+        } else {
+          highlightedIndex.value--;
+        }
+        break;
+      case 'Enter':
+        event.preventDefault();
+        if (highlightedIndex.value !== -1) {
+          selectItem(searchResults.value[highlightedIndex.value]);
+        }
+        break;
+      case 'Escape':
+        event.preventDefault();
+        hide();
+        break;
+    }
+  } else if (event.key === 'Enter') {
+    // Если список не виден, Enter запускает поиск
+    event.preventDefault();
+    await performSearch();
+  }
+}
+
 onMounted(() => {
   window.addEventListener('resize', updateDropdownPosition);
-  // Слушаем скролл на всем документе
   document.addEventListener('scroll', updateDropdownPosition, true);
 });
 onUnmounted(() => {
@@ -105,7 +146,7 @@ onUnmounted(() => {
   document.removeEventListener('scroll', updateDropdownPosition, true);
 });
 
-// --- Логика поиска и выбора ---
+// --- Search and Select Logic ---
 watch(() => props.modelValue, (newValue) => {
   if (typeof newValue === 'object' && newValue && props.displayField in newValue) {
     searchTerm.value = newValue[props.displayField];
@@ -128,9 +169,9 @@ async function performSearch() {
 
   searchResults.value = props.store[props.resultsKey] || [];
 
-  await nextTick();
+  highlightedIndex.value = -1; // Сбрасываем выделение при новом поиске
+
   if (searchResults.value.length > 0) {
-    updateDropdownPosition();
     showDropdown.value = true;
   } else {
     hide();
@@ -144,6 +185,5 @@ function selectItem(item: any) {
   emit('update:modelValue', item);
 }
 
-// Закрываем по клику вне основного компонента
 onClickOutside(wrapper, hide);
 </script>
