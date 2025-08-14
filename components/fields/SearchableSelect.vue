@@ -69,7 +69,14 @@ const showDropdown = ref(false);
 const wrapper = ref(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 const dropdownStyle = ref({});
-const highlightedIndex = ref(-1); // Индекс для выделенного элемента
+const highlightedIndex = ref(-1);
+
+// --- ИЗМЕНЕНИЕ: Метод для фокуса и его экспорт ---
+function focus() {
+  inputRef.value?.focus();
+}
+defineExpose({ focus });
+// --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
 // --- Positioning Logic ---
 function updateDropdownPosition() {
@@ -93,7 +100,7 @@ watch(showDropdown, (isVisible) => {
 // --- Event Handlers ---
 function hide() {
   showDropdown.value = false;
-  highlightedIndex.value = -1; // Сбрасываем выделение при закрытии
+  highlightedIndex.value = -1;
 }
 
 function onFocus() {
@@ -104,7 +111,6 @@ function onFocus() {
 
 // --- Keyboard Navigation ---
 async function handleKeydown(event: KeyboardEvent) {
-  // Если выпадающий список видим, управляем навигацией
   if (showDropdown.value && searchResults.value.length > 0) {
     switch (event.key) {
       case 'ArrowDown':
@@ -131,7 +137,6 @@ async function handleKeydown(event: KeyboardEvent) {
         break;
     }
   } else if (event.key === 'Enter') {
-    // Если список не виден, Enter запускает поиск
     event.preventDefault();
     await performSearch();
   }
@@ -169,7 +174,7 @@ async function performSearch() {
 
   searchResults.value = props.store[props.resultsKey] || [];
 
-  highlightedIndex.value = -1; // Сбрасываем выделение при новом поиске
+  highlightedIndex.value = -1;
 
   if (searchResults.value.length > 0) {
     showDropdown.value = true;
