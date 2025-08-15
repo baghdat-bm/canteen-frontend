@@ -8,14 +8,15 @@
     </div>
 
     <!-- Сообщение об ошибке -->
-    <div v-else-if="!store.invoice" class="text-center p-8 bg-white rounded-lg shadow text-red-500">
+    <!-- ИЗМЕНЕНИЕ: Проверяем store.single -->
+    <div v-else-if="!store.single" class="text-center p-8 bg-white rounded-lg shadow text-red-500">
       {{ $t('messages.fetchErrorItem') }}
     </div>
 
     <!-- Форма в режиме просмотра -->
     <IncomingInvoiceForm
         v-else
-        :initial-data="store.invoice"
+        :initial-data="store.single"
         :is-view-mode="true"
     />
 

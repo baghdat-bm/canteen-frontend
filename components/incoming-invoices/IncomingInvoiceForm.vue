@@ -45,45 +45,41 @@
     </div>
 
     <!-- Табличная часть -->
-    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('invoiceItems') }}</h3>
-    <div class="overflow-x-auto">
-      <table class="min-w-full">
-        <thead>
-        <tr>
-          <th class="w-2/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('dish.item') }}</th>
-          <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('measurementUnit.item') }}</th>
-          <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('quantity') }}</th>
-          <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('costPrice') }}</th>
-          <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('salePrice') }}</th>
-          <th v-if="!isViewMode" class="w-auto px-2 py-2"></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(item, index) in formData.invoice_dish_items" :key="index">
-          <td class="p-1">
-            <SearchableSelect
-                :ref="el => { if (el) dishSelectRefs[index] = el }"
-                v-model="item.dish"
-                :store="dishStore"
-                results-key="dishes"
-                :search-field="`name_${locale}`"
-                :display-field="`name_${locale}`"
-                :placeholder="$t('dish.searchPlaceholder')"
-                :disabled="isViewMode"
-            />
-          </td>
-          <td class="p-1"><SearchableSelect v-model="item.measurement_unit" :store="measurementUnitsStore" results-key="measurementUnits" :search-field="`name_${locale}`" :display-field="`name_${locale}`" :placeholder="$t('measurementUnit.searchPlaceholder')" :disabled="isViewMode" /></td>
-          <td class="p-1"><input :ref="el => { if (el) quantityRefs[index] = el }" type="number" step="0.01" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100" /></td>
-          <td class="p-1"><input type="number" step="0.01" v-model.number="item.cost_price" @keydown.enter.prevent="addRow" :disabled="isViewMode" class="w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100" /></td>
-          <td class="p-1"><input type="number" step="0.01" :value="item.sale_price" disabled class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100" /></td>
-          <td v-if="!isViewMode" class="p-1 text-center"><button @click="removeRow(index)" class="text-red-500 hover:text-red-700"><Trash2 class="w-5 h-5" /></button></td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-    <button v-if="!isViewMode" @click="addRow" class="mt-4 px-4 py-2 border border-dashed rounded-md text-sm text-indigo-600 hover:bg-indigo-50">
-      {{ $t('actions.addRow') }} (Insert)
-    </button>
+    <!-- ИСПОЛЬЗУЕМ НОВЫЙ КОМПОНЕНТ ТАБЛИЦЫ -->
+    <DocumentItemsTable
+        :items="formData.invoice_dish_items"
+        :title="$t('invoiceItems')"
+        :add-row-text="$t('actions.addRow')"
+        :is-view-mode="isViewMode"
+        @add-row="addRow"
+        @remove-row="removeRow"
+    >
+      <template #head>
+        <th class="w-2/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('dish.item') }}</th>
+        <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('measurementUnit.item') }}</th>
+        <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('quantity') }}</th>
+        <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('costPrice') }}</th>
+        <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('salePrice') }}</th>
+      </template>
+      <template #row="{ item, index }">
+        <td class="p-1">
+          <SearchableSelect
+              :ref="el => { if (el) dishSelectRefs[index] = el }"
+              v-model="item.dish"
+              :store="dishStore"
+              results-key="dishes"
+              :search-field="`name_${locale}`"
+              :display-field="`name_${locale}`"
+              :placeholder="$t('dish.searchPlaceholder')"
+              :disabled="isViewMode"
+          />
+        </td>
+        <td class="p-1"><SearchableSelect v-model="item.measurement_unit" :store="measurementUnitsStore" results-key="measurementUnits" :search-field="`name_${locale}`" :display-field="`name_${locale}`" :placeholder="$t('measurementUnit.searchPlaceholder')" :disabled="isViewMode" /></td>
+        <td class="p-1"><input :ref="el => { if (el) quantityRefs[index] = el }" type="number" step="0.01" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border rounded-md shadow-sm disabled:bg-gray-100" /></td>
+        <td class="p-1"><input type="number" step="0.01" v-model.number="item.cost_price" @keydown.enter.prevent="addRow" :disabled="isViewMode" class="w-full p-2 border rounded-md shadow-sm disabled:bg-gray-100" /></td>
+        <td class="p-1"><input type="number" step="0.01" :value="item.sale_price" disabled class="w-full p-2 border rounded-md shadow-sm bg-gray-100" /></td>
+      </template>
+    </DocumentItemsTable>
 
     <!-- Комментарий -->
     <div class="mt-6">
@@ -135,6 +131,7 @@ import SearchableSelect from '~/components/fields/SearchableSelect.vue';
 import ContractorSelectDialog from '~/components/dialogs/ContractorSelectDialog.vue';
 import { Search, Trash2 } from 'lucide-vue-next';
 import BaseSpinner from '~/components/BaseSpinner.vue';
+import DocumentItemsTable from '~/components/documents/DocumentItemsTable.vue'
 
 const props = defineProps<{
   initialData?: IncomingInvoiceDetail | null;

@@ -65,8 +65,8 @@
       <p class="mt-2 text-gray-600">{{ $t('loading') }}</p>
     </div>
 
-    <!-- Сообщение, если нет данных -->
-    <div v-else-if="!store.invoices || store.invoices.length === 0" class="text-center text-gray-500 bg-white rounded-lg shadow p-8">
+    <!-- ИЗМЕНЕНИЕ: Проверяем store.list вместо store.invoices -->
+    <div v-else-if="!store.list || store.list.length === 0" class="text-center text-gray-500 bg-white rounded-lg shadow p-8">
       {{ $t('messages.noData') }}
     </div>
 
@@ -86,7 +86,8 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="invoice in store.invoices" :key="invoice.id" @click="viewInvoice(invoice.id)" class="cursor-pointer hover:bg-gray-100 transition-colors">
+        <!-- ИЗМЕНЕНИЕ: Итерируем по store.list вместо store.invoices -->
+        <tr v-for="invoice in store.list" :key="invoice.id" @click="viewInvoice(invoice.id)" class="cursor-pointer hover:bg-gray-100 transition-colors">
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.id }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ formatDate(invoice.date) }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.supplier.name }}</td>
@@ -138,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useIncomingInvoicesStore } from '~/stores/incomingInvoices';
 import { useWarehouseStore } from '~/stores/warehouses';
 import { type Contractor } from '~/stores/contractors';
@@ -237,7 +238,7 @@ onMounted(() => {
   store.fetchRecords(store.currentPage);
   // Загружаем склады для фильтра (если их еще нет)
   if (warehouseStore.warehouses.length === 0) {
-    warehouseStore.fetchRecords(1); // Загружаем первую страницу складов
+    warehouseStore.fetchRecords(1);
   }
 });
 </script>

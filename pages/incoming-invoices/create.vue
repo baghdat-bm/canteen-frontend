@@ -10,22 +10,21 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia'; // ИЗМЕНЕНИЕ: Импорт storeToRefs
-import { useIncomingInvoicesStore, type IncomingInvoiceDetail } from '~/stores/incomingInvoices';
+import { storeToRefs } from 'pinia';
+import { useIncomingInvoicesStore } from '~/stores/incomingInvoices';
+import type { IncomingInvoicePayload } from '~/types/documents'; // ИЗМЕНЕНИЕ: Импорт из нового файла
 import IncomingInvoiceForm from '~/components/incoming-invoices/IncomingInvoiceForm.vue';
 
 const store = useIncomingInvoicesStore();
-const { isSubmitting } = storeToRefs(store); // ИЗМЕНЕНИЕ: Делаем isSubmitting реактивным
+const { isSubmitting } = storeToRefs(store);
 const router = useRouter();
 const localePath = useLocalePath();
 
-async function handleSubmit(formData: IncomingInvoiceDetail) {
-  // isSubmitting будет управляться внутри action
+// ИЗМЕНЕНИЕ: Тип formData теперь IncomingInvoicePayload
+async function handleSubmit(formData: IncomingInvoicePayload) {
   const createdRecord = await store.createRecord(formData);
   if (createdRecord) {
-    // Переход на страницу просмотра созданной записи
     router.push(localePath(`/incoming-invoices/${createdRecord.id}`));
   }
-  // Если ошибка, уведомление покажется из самого стора
 }
 </script>
