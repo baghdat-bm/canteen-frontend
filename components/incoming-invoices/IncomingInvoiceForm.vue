@@ -1,28 +1,14 @@
 <template>
   <div class="bg-white p-6 rounded-lg shadow-md" @keydown.insert.prevent="addRow">
+    <!-- Динамический заголовок -->
+    <h1 class="text-2xl font-bold mb-6 border-b pb-4">{{ formTitle }}</h1>
+
     <!-- Верхняя часть формы (шапка документа) -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-x-6 gap-y-4 mb-8">
 
-      <!-- СТРОКА 1 -->
-      <!-- date.item -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700">{{ $t('date.item') }}</label>
-        <input type="datetime-local" v-model="formData.date" :disabled="isViewMode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100">
-      </div>
-      <!-- amount -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700">{{ $t('amount') }}</label>
-        <input type="number" step="0.01" :value="totalAmount" disabled class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
-      </div>
-      <!-- status.accepted -->
-      <div class="flex items-end pb-2">
-        <input type="checkbox" v-model="formData.accepted" id="accepted" :disabled="isViewMode" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:bg-gray-100">
-        <label for="accepted" class="ml-2 text-sm text-gray-900">{{ $t('status.accepted') }}</label>
-      </div>
-
-      <!-- СТРОКА 2 -->
+      <!-- СТРОКА 1 (2 колонки) -->
       <!-- supplier.item -->
-      <div>
+      <div class="md:col-span-3">
         <label class="block text-sm font-medium text-gray-700">{{ $t('supplier.item') }}</label>
         <div class="mt-1 flex rounded-md shadow-sm">
           <input type="text" readonly :value="supplierName" class="p-2 block w-full border border-r-0 border-gray-300 rounded-none rounded-l-md bg-gray-50" />
@@ -32,33 +18,30 @@
         </div>
       </div>
       <!-- warehouse.item -->
-      <div>
+      <div class="md:col-span-3">
         <label class="block text-sm font-medium text-gray-700">{{ $t('warehouse.item') }}</label>
         <select v-model="formData.warehouse" :disabled="isViewMode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100">
           <option :value="null" disabled>{{ $t('messages.select') }}</option>
           <option v-for="w in warehouseStore.warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
         </select>
       </div>
-      <!-- author -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700">{{ $t('author') }}</label>
-        <input type="text" :value="formData.author" disabled class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
-      </div>
 
-      <!-- СТРОКА 3 -->
+      <!-- СТРОКА 2 (3 колонки) -->
       <!-- shipping_cost -->
-      <div>
+      <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700">{{ $t('shipping_cost') }}</label>
         <input type="number" step="0.01" v-model.number="formData.shipping_cost" :disabled="isViewMode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100">
       </div>
       <!-- paid_amount -->
-      <div>
+      <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700">{{ $t('paid_amount') }}</label>
         <input type="number" step="0.01" :value="finalAmount" disabled class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
       </div>
-      <!-- Пустое место -->
-      <div></div>
-
+      <!-- status.accepted -->
+      <div class="md:col-span-2 flex items-end pb-2">
+        <input type="checkbox" v-model="formData.accepted" id="accepted" :disabled="isViewMode" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:bg-gray-100">
+        <label for="accepted" class="ml-2 text-sm text-gray-900">{{ $t('status.accepted') }}</label>
+      </div>
     </div>
 
     <!-- Табличная часть -->
@@ -109,9 +92,14 @@
     </div>
 
     <!-- Кнопки управления -->
-    <div v-if="!isViewMode" class="flex justify-end space-x-4 mt-8 pt-4 border-t">
-      <NuxtLink :to="localePath('/incoming-invoices')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">{{ $t('actions.cancel') }}</NuxtLink>
-      <button @click="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">{{ $t('actions.save') }}</button>
+    <div class="flex justify-between items-center mt-8 pt-4 border-t">
+      <div class="text-sm text-gray-500">
+        <span v-if="formData.author">{{ $t('author') }}: {{ formData.author }}</span>
+      </div>
+      <div v-if="!isViewMode" class="flex space-x-4">
+        <NuxtLink :to="localePath('/incoming-invoices')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">{{ $t('actions.cancel') }}</NuxtLink>
+        <button @click="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">{{ $t('actions.save') }}</button>
+      </div>
     </div>
 
     <ContractorSelectDialog v-model="showContractorDialog" @select="handleContractorSelect" />
@@ -124,27 +112,26 @@ import { useI18n } from 'vue-i18n';
 import { useWarehouseStore } from '~/stores/warehouses';
 import { useDishStore } from '~/stores/dishes';
 import { useMeasurementUnitsStore } from '~/stores/measurementUnits';
+import { useContractorsStore } from '~/stores/contractors';
 import type { IncomingInvoiceDetail } from '~/stores/incomingInvoices';
 import type { Contractor } from '~/stores/contractors';
 import SearchableSelect from '~/components/fields/SearchableSelect.vue';
 import ContractorSelectDialog from '~/components/dialogs/ContractorSelectDialog.vue';
 import { Search, Trash2 } from 'lucide-vue-next';
 
-// --- Props & Emits ---
 const props = defineProps<{
   initialData?: IncomingInvoiceDetail | null;
   isViewMode?: boolean;
 }>();
 const emit = defineEmits(['submit']);
 
-// --- Stores & Composables ---
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 const localePath = useLocalePath();
 const warehouseStore = useWarehouseStore();
 const dishStore = useDishStore();
 const measurementUnitsStore = useMeasurementUnitsStore();
+const contractorsStore = useContractorsStore();
 
-// --- State ---
 const showContractorDialog = ref(false);
 const supplierName = ref('');
 const dishSelectRefs = ref([]);
@@ -162,7 +149,32 @@ const formData = ref<Partial<IncomingInvoiceDetail>>({
   author: '',
 });
 
-// --- Computed Properties ---
+// --- ИЗМЕНЕНИЕ: Упрощенный watch, работающий с объектами ---
+watch(() => props.initialData, (data) => {
+  if (data) {
+    // Создаем глубокую копию, чтобы не изменять props
+    const tempData = JSON.parse(JSON.stringify(data));
+
+    // Обрабатываем поставщика, если это объект
+    if (typeof tempData.supplier === 'object' && tempData.supplier !== null) {
+      supplierName.value = tempData.supplier.name;
+      // В formData сохраняем только ID для v-model и отправки
+      tempData.supplier = tempData.supplier.id;
+    }
+
+    // Обрабатываем склад, если это объект
+    if (typeof tempData.warehouse === 'object' && tempData.warehouse !== null) {
+      // В formData сохраняем только ID для v-model
+      tempData.warehouse = tempData.warehouse.id;
+    }
+
+    // Присваиваем обработанные данные
+    formData.value = tempData;
+  }
+}, { immediate: true, deep: true });
+// --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
+
 const totalAmount = computed(() => {
   return formData.value.invoice_dish_items?.reduce((sum, item) => {
     return sum + (Number(item.quantity) || 0) * (Number(item.cost_price) || 0);
@@ -173,7 +185,6 @@ const finalAmount = computed(() => {
   return totalAmount.value + (Number(formData.value.shipping_cost) || 0);
 });
 
-// --- Watchers ---
 watch(() => formData.value.invoice_dish_items, (items) => {
   items?.forEach(item => {
     const quantity = Number(item.quantity) || 0;
@@ -182,16 +193,37 @@ watch(() => formData.value.invoice_dish_items, (items) => {
   });
 }, { deep: true });
 
-watch(() => props.initialData, (data) => {
-  if (data) {
-    formData.value = JSON.parse(JSON.stringify(data));
-    if (typeof data.supplier === 'object' && data.supplier && 'name' in data.supplier) {
-      supplierName.value = (data.supplier as { name: string }).name;
-    }
-  }
-}, { immediate: true, deep: true });
+const formatDateForTitle = (isoDate: string) => {
+  if (!isoDate) return '';
+  const date = new Date(isoDate);
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  };
+  return new Intl.DateTimeFormat(locale.value === 'kz' ? 'kk-KZ' : 'ru-RU', options).format(date);
+};
 
-// --- Methods ---
+const formatNumberForTitle = (num: number) => {
+  return new Intl.NumberFormat(locale.value === 'kz' ? 'kk-KZ' : 'ru-RU', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(num || 0);
+};
+
+const formTitle = computed(() => {
+  if (!props.initialData) {
+    return t('incomingInvoice.creating');
+  }
+
+  const formattedDate = formatDateForTitle(formData.value.date || '');
+  const formattedAmount = formatNumberForTitle(finalAmount.value);
+
+  if (locale.value === 'kz') {
+    return `${formattedDate} жылғы ${formattedAmount} тг. сомасына кіріс жүкқұжаты`;
+  }
+  return `Приходная накладная от ${formattedDate} на сумму ${formattedAmount} тг.`;
+});
+
 async function addRow() {
   if (props.isViewMode) return;
   formData.value.invoice_dish_items?.push({
@@ -234,7 +266,6 @@ function submit() {
   emit('submit', payload);
 }
 
-// --- Lifecycle & Global Events ---
 function handleGlobalKeyDown(event: KeyboardEvent) {
   if (event.key === 'Insert' && !props.isViewMode) {
     event.preventDefault();

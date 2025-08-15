@@ -122,19 +122,6 @@ export const useContractorsStore = defineStore('contractors', () => {
         }
     }
 
-    async function fetchOne(id: number) {
-        try {
-            const c = await api.refs<Contractor>(`/contractors/${id}/`, { method: 'get' });
-            const idx = contractors.value.findIndex(x => x.id === c.id);
-            if (idx === -1) contractors.value.push(c);
-            else contractors.value[idx] = c;
-            return c;
-        } catch (e) {
-            console.error('fetchOne contractor failed', e);
-            return null;
-        }
-    }
-
     /**
      * Создает нового контрагента
      */
@@ -228,7 +215,6 @@ export const useContractorsStore = defineStore('contractors', () => {
         getContractorById,
         fetchRecords,
         fetchRecord,
-        fetchOne,
         createRecord,
         updateRecord,
         deleteRecord,

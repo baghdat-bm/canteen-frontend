@@ -1,19 +1,5 @@
 <template>
   <div class="container mx-auto">
-    <!-- Заголовок страницы и кнопки -->
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold">
-        {{ $t('incomingInvoice.item') }} №{{ route.params.id }}
-      </h1>
-      <div class="flex space-x-2">
-        <NuxtLink :to="localePath('/incoming-invoices')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
-          {{ $t('actions.toList') }}
-        </NuxtLink>
-        <NuxtLink :to="localePath(`/incoming-invoices/${route.params.id}/edit`)" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-          {{ $t('actions.edit') }}
-        </NuxtLink>
-      </div>
-    </div>
 
     <!-- Индикатор загрузки -->
     <div v-if="store.isLoading" class="text-center p-8 bg-white rounded-lg shadow">
@@ -32,6 +18,17 @@
         :initial-data="store.invoice"
         :is-view-mode="true"
     />
+
+    <div class="flex justify-end items-center mt-4">
+      <div class="flex space-x-2">
+        <NuxtLink :to="localePath('/incoming-invoices')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
+          {{ $t('actions.toList') }}
+        </NuxtLink>
+        <NuxtLink :to="localePath(`/incoming-invoices/${route.params.id}/edit`)" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+          {{ $t('actions.edit') }}
+        </NuxtLink>
+      </div>
+    </div>
   </div>
 </template>
 

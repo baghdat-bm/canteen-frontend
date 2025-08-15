@@ -1,9 +1,6 @@
 <template>
   <div class="container mx-auto">
-    <!-- Заголовок -->
-    <h1 class="text-2xl font-bold mb-4">{{ $t('incomingInvoice.creating') }}</h1>
-
-    <!-- Компонент формы -->
+    <!-- Заголовок убран, он теперь в форме -->
     <IncomingInvoiceForm @submit="handleSubmit" />
   </div>
 </template>

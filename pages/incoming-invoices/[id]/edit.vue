@@ -1,44 +1,41 @@
-<script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import IncomingInvoiceForm from '~/components/incoming-invoices/IncomingInvoiceForm.vue';
-import { useIncomingInvoicesStore } from '~/stores/incomingInvoices';
-import type { IncomingInvoiceDetail } from '~/stores/incomingInvoices';
+<template>
+  <div class="container mx-auto">
+    <!-- Форма в режиме редактирования -->
+    <IncomingInvoiceForm
+        v-if="!store.isLoading && store.invoice"
+        :initial-data="store.invoice"
+        @submit="handleSubmit"
+    />
+    <div v-else class="text-center p-8">
+      <BaseSpinner />
+    </div>
+  </div>
+</template>
 
+<script setup lang="ts">
+import { useRoute, useRouter } from 'vue-router';
+import { onMounted } from 'vue';
+import { useIncomingInvoicesStore, type IncomingInvoiceDetail } from '~/stores/incomingInvoices';
+import IncomingInvoiceForm from '~/components/incoming-invoices/IncomingInvoiceForm.vue';
+import BaseSpinner from '~/components/BaseSpinner.vue';
+
+const store = useIncomingInvoicesStore();
 const route = useRoute();
 const router = useRouter();
-const store = useIncomingInvoicesStore();
+const localePath = useLocalePath();
 
-const model = ref<IncomingInvoiceDetail | null>(null);
-
-onMounted(async () => {
+onMounted(() => {
   const id = Number(route.params.id);
-  await store.fetchRecord(id);
-  model.value = store.invoice;
+  if (id) {
+    store.fetchRecord(id);
+  }
 });
 
-async function handleSubmit(payload: any) {
+async function handleSubmit(formData: IncomingInvoiceDetail) {
   const id = Number(route.params.id);
-  const updated = await store.updateRecord(id, payload);
-  if (updated?.id) {
-    router.push(`/incoming-invoices/${updated.id}`);
+  const updatedRecord = await store.updateRecord(id, formData);
+  if (updatedRecord) {
+    router.push(localePath(`/incoming-invoices/${id}`));
   }
 }
 </script>
-
-<template>
-  <div class="p-4 lg:p-6 space-y-4">
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-semibold">Редактирование накладной</h1>
-    </div>
-
-    <div v-if="!model" class="text-gray-500">Загрузка…</div>
-    <IncomingInvoiceForm
-        v-else
-        mode="edit"
-        v-model="form"
-        @submit="handleSubmit"
-        @cancel="$router.back()"
-    />
-  </div>
-</template>
