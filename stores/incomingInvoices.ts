@@ -1,4 +1,3 @@
-// stores/incomingInvoices.ts
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
 import {api, type PaginatedResponse} from '~/utils/apiClient';
@@ -65,9 +64,11 @@ export type IncomingInvoicePayload = Omit<
 /** ================== Store ================== */
 
 export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
+    // --- State ---
     const invoices = ref<IncomingInvoiceList[]>([]);
     const invoice = ref<IncomingInvoiceDetail | null>(null);
     const isLoading = ref(false);
+    const isSubmitting = ref(false); // ИЗМЕНЕНИЕ: Новое состояние для сохранения
     const totalRecords = ref(0);
     const pageSize = ref(20);
     const currentPage = ref(1);
@@ -166,23 +167,19 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
     }
 
     /** Создание */
-    async function createRecord(detail: IncomingInvoiceDetail) {
+    async function createRecord(payload: IncomingInvoicePayload) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
-
+        isSubmitting.value = true; // ИЗМЕНЕНИЕ
         try {
-            const payload = toPayload(detail);
-
             const created = await api.docs<IncomingInvoiceDetail>('/incoming-invoices/', {
                 method: 'POST',
                 body: payload,
             });
-
             uiStore.showNotification({
                 message: t('message.createSuccess', { item: t('incomingInvoice.item') }),
                 type: 'success',
             });
-
             return created;
         } catch (error) {
             console.error('Failed to create incoming invoice:', error);
@@ -191,27 +188,25 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
                 type: 'error',
             });
             return null;
+        } finally {
+            isSubmitting.value = false; // ИЗМЕНЕНИЕ
         }
     }
 
     /** Обновление */
-    async function updateRecord(id: number, detail: IncomingInvoiceDetail) {
+    async function updateRecord(id: number, payload: IncomingInvoicePayload) {
         const uiStore = useUiStore();
         const { t } = useNuxtApp().$i18n;
-
+        isSubmitting.value = true; // ИЗМЕНЕНИЕ
         try {
-            const payload = toPayload(detail);
-
             const updated = await api.docs<IncomingInvoiceDetail>(`/incoming-invoices/${id}/`, {
                 method: 'PUT',
                 body: payload,
             });
-
             uiStore.showNotification({
                 message: t('message.updateSuccess', { item: t('incomingInvoice.item') }),
                 type: 'success',
             });
-
             return updated;
         } catch (error) {
             console.error(`Failed to update incoming invoice with id ${id}:`, error);
@@ -220,6 +215,8 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
                 type: 'error',
             });
             return null;
+        } finally {
+            isSubmitting.value = false; // ИЗМЕНЕНИЕ
         }
     }
 
@@ -264,7 +261,7 @@ export const useIncomingInvoicesStore = defineStore('incomingInvoices', () => {
 
     return {
         invoices, invoice, isLoading, totalRecords, pageSize, currentPage, searchQuery,
-        totalPages,
+        totalPages, isSubmitting,
         fetchRecords, fetchRecord, createRecord, updateRecord, deleteRecord, reset
     };
 });

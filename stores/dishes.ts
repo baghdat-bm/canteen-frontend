@@ -3,7 +3,7 @@ import {computed, ref} from 'vue';
 import {api, type PaginatedResponse} from '~/utils/apiClient';
 import {useUiStore} from './ui.js';
 
-// Интерфейс для объекта категории блюд
+// Интерфейс для объекта блюд
 export interface Dish {
     id: number;
     name_kz: string;
@@ -32,7 +32,7 @@ export const useDishStore = defineStore('dishes', () => {
     const dish = ref<Dish | null>(null);
     const isLoading = ref(false);
     const error = ref( '');
-    
+
     // --- Состояние для пагинации и поиска ---
     const totalRecords = ref(0);
     const pageSize = ref(30); // 30 записей на страницу
@@ -52,7 +52,7 @@ export const useDishStore = defineStore('dishes', () => {
     });
 
     // --- Actions ---
-    
+
     function reset() {
         dishes.value = [];
         dish.value = null;
@@ -78,7 +78,7 @@ export const useDishStore = defineStore('dishes', () => {
 
             console.log(`dishes request params: ${params}`);
 
-            const urlStr = `/dishes/?${params.toString()}`;
+            const urlStr = `/dishes-ext/?${params.toString()}`;
             const response = await api.refs<PaginatedResponse<Dish>>(urlStr, { method: 'get' });
             dishes.value = response.results;
         } catch (e) {
@@ -133,7 +133,7 @@ export const useDishStore = defineStore('dishes', () => {
                 params.append('page_size', pageSize.value.toString());
             }
 
-            const urlStr = `/dishes/?${params.toString()}`;
+            const urlStr = `/dishes-ext/?${params.toString()}`;
             console.log(`dishes request urlStr: ${urlStr}`);
             const response = await api.refs<PaginatedResponse<Dish>>(urlStr, { method: 'get' });
             // console.log(`response.results:`);
@@ -156,11 +156,11 @@ export const useDishStore = defineStore('dishes', () => {
     }
 
     async function fetchRecord(id: number) {
-        const uiStore = useUiStore(); 
+        const uiStore = useUiStore();
         isLoading.value = true;
         try {
-            dish.value = await api.refs<Dish>(`/dishes/${id}/`, { method: 'get' });
-        } catch (error) {            
+            dish.value = await api.refs<Dish>(`/dishes-ext/${id}/`, { method: 'get' });
+        } catch (error) {
             dish.value = null;
             const errText = `Failed to fetch dish with id ${id}`;
             uiStore.showNotification({
@@ -168,12 +168,12 @@ export const useDishStore = defineStore('dishes', () => {
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error); 
+            console.error(errText, error);
         } finally {
             isLoading.value = false;
         }
     }
-    
+
     /**
      * Преобразует объект payload в FormData для отправки файлов
      */
@@ -197,7 +197,7 @@ export const useDishStore = defineStore('dishes', () => {
     }
 
     async function createRecord(payload: DishPayload) {
-        const uiStore = useUiStore(); 
+        const uiStore = useUiStore();
         const formData = createFormData(payload);
         try {
             await api.refs('/dishes/', {
@@ -205,19 +205,19 @@ export const useDishStore = defineStore('dishes', () => {
                 body: formData,
             });
 
-        } catch (error) {            
+        } catch (error) {
             const errText = 'Failed to create dish';
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error); 
+            console.error(errText, error);
         }
     }
 
     async function updateRecord(id: number, payload: DishPayload) {
-        const uiStore = useUiStore(); 
+        const uiStore = useUiStore();
         const formData = createFormData(payload);
         try {
             // Используем PATCH, чтобы можно было не отправлять файл, если он не менялся
@@ -226,25 +226,25 @@ export const useDishStore = defineStore('dishes', () => {
                 body: formData,
             });
 
-        } catch (error) {            
+        } catch (error) {
             const errText = `Failed to update dish with id ${id}`;
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
                 duration: 7000
             });
-            console.error(errText, error); 
+            console.error(errText, error);
         }
     }
-    
+
     /**
      * Удаление записи
      * @param {number} id - ID записи
      */
     async function deleteRecord(id: number) {
-        
-        const uiStore = useUiStore();        
-        const nuxtApp = useNuxtApp();        
+
+        const uiStore = useUiStore();
+        const nuxtApp = useNuxtApp();
         const { t } = nuxtApp.$i18n;
 
         try {
@@ -258,7 +258,7 @@ export const useDishStore = defineStore('dishes', () => {
                 type: 'success',
             });
             return true;
-        } catch (error) {            
+        } catch (error) {
             console.error(`Failed to delete dish with id ${id}:`, error);
 
             uiStore.showNotification({

@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white p-6 rounded-lg shadow-md" @keydown.insert.prevent="addRow">
+  <div class="bg-white p-6 rounded-lg shadow-md">
     <!-- Динамический заголовок -->
     <h1 class="text-2xl font-bold mb-6 border-b pb-4">{{ formTitle }}</h1>
 
@@ -73,7 +73,7 @@
             />
           </td>
           <td class="p-1"><SearchableSelect v-model="item.measurement_unit" :store="measurementUnitsStore" results-key="measurementUnits" :search-field="`name_${locale}`" :display-field="`name_${locale}`" :placeholder="$t('measurementUnit.searchPlaceholder')" :disabled="isViewMode" /></td>
-          <td class="p-1"><input type="number" step="0.01" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100" /></td>
+          <td class="p-1"><input :ref="el => { if (el) quantityRefs[index] = el }" type="number" step="0.01" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100" /></td>
           <td class="p-1"><input type="number" step="0.01" v-model.number="item.cost_price" @keydown.enter.prevent="addRow" :disabled="isViewMode" class="w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100" /></td>
           <td class="p-1"><input type="number" step="0.01" :value="item.sale_price" disabled class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100" /></td>
           <td v-if="!isViewMode" class="p-1 text-center"><button @click="removeRow(index)" class="text-red-500 hover:text-red-700"><Trash2 class="w-5 h-5" /></button></td>
@@ -97,8 +97,23 @@
         <span v-if="formData.author">{{ $t('author') }}: {{ formData.author }}</span>
       </div>
       <div v-if="!isViewMode" class="flex space-x-4">
-        <NuxtLink :to="localePath('/incoming-invoices')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">{{ $t('actions.cancel') }}</NuxtLink>
-        <button @click="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">{{ $t('actions.save') }}</button>
+        <NuxtLink
+            :to="localePath('/incoming-invoices')"
+            :class="['px-4 py-2 rounded-md', isSubmitting ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-300 text-gray-800 hover:bg-gray-400']"
+            :aria-disabled="isSubmitting"
+            :tabindex="isSubmitting ? -1 : undefined"
+            @click="isSubmitting ? $event.preventDefault() : null"
+        >
+          {{ $t('actions.cancel') }}
+        </NuxtLink>
+        <button
+            @click="submit"
+            :disabled="isSubmitting"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-wait flex items-center"
+        >
+          <BaseSpinner v-if="isSubmitting" class="w-5 h-5 mr-2" />
+          {{ isSubmitting ? $t('actions.saving') : $t('actions.save') }}
+        </button>
       </div>
     </div>
 
@@ -109,6 +124,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, nextTick, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useUiStore } from '~/stores/ui';
 import { useWarehouseStore } from '~/stores/warehouses';
 import { useDishStore } from '~/stores/dishes';
 import { useMeasurementUnitsStore } from '~/stores/measurementUnits';
@@ -118,15 +134,18 @@ import type { Contractor } from '~/stores/contractors';
 import SearchableSelect from '~/components/fields/SearchableSelect.vue';
 import ContractorSelectDialog from '~/components/dialogs/ContractorSelectDialog.vue';
 import { Search, Trash2 } from 'lucide-vue-next';
+import BaseSpinner from '~/components/BaseSpinner.vue';
 
 const props = defineProps<{
   initialData?: IncomingInvoiceDetail | null;
   isViewMode?: boolean;
+  isSubmitting?: boolean;
 }>();
 const emit = defineEmits(['submit']);
 
 const { t, locale } = useI18n();
 const localePath = useLocalePath();
+const uiStore = useUiStore();
 const warehouseStore = useWarehouseStore();
 const dishStore = useDishStore();
 const measurementUnitsStore = useMeasurementUnitsStore();
@@ -135,6 +154,10 @@ const contractorsStore = useContractorsStore();
 const showContractorDialog = ref(false);
 const supplierName = ref('');
 const dishSelectRefs = ref([]);
+const quantityRefs = ref([]);
+
+let barcodeBuffer = '';
+let lastKeystrokeTime = 0;
 
 const formData = ref<Partial<IncomingInvoiceDetail>>({
   date: new Date().toISOString().slice(0, 16),
@@ -149,32 +172,6 @@ const formData = ref<Partial<IncomingInvoiceDetail>>({
   author: '',
 });
 
-// --- ИЗМЕНЕНИЕ: Упрощенный watch, работающий с объектами ---
-watch(() => props.initialData, (data) => {
-  if (data) {
-    // Создаем глубокую копию, чтобы не изменять props
-    const tempData = JSON.parse(JSON.stringify(data));
-
-    // Обрабатываем поставщика, если это объект
-    if (typeof tempData.supplier === 'object' && tempData.supplier !== null) {
-      supplierName.value = tempData.supplier.name;
-      // В formData сохраняем только ID для v-model и отправки
-      tempData.supplier = tempData.supplier.id;
-    }
-
-    // Обрабатываем склад, если это объект
-    if (typeof tempData.warehouse === 'object' && tempData.warehouse !== null) {
-      // В formData сохраняем только ID для v-model
-      tempData.warehouse = tempData.warehouse.id;
-    }
-
-    // Присваиваем обработанные данные
-    formData.value = tempData;
-  }
-}, { immediate: true, deep: true });
-// --- КОНЕЦ ИЗМЕНЕНИЯ ---
-
-
 const totalAmount = computed(() => {
   return formData.value.invoice_dish_items?.reduce((sum, item) => {
     return sum + (Number(item.quantity) || 0) * (Number(item.cost_price) || 0);
@@ -185,13 +182,55 @@ const finalAmount = computed(() => {
   return totalAmount.value + (Number(formData.value.shipping_cost) || 0);
 });
 
-watch(() => formData.value.invoice_dish_items, (items) => {
-  items?.forEach(item => {
+watch(formData, async (newData) => {
+  const items = newData.invoice_dish_items || [];
+
+  for (const item of items) {
     const quantity = Number(item.quantity) || 0;
     const costPrice = Number(item.cost_price) || 0;
-    item.sale_price = parseFloat((quantity * costPrice).toFixed(2));
-  });
+    const newSalePrice = parseFloat((quantity * costPrice).toFixed(2));
+    if (item.sale_price !== newSalePrice) {
+      item.sale_price = newSalePrice;
+    }
+
+    if (typeof item.dish === 'object' && item.dish) {
+      const selectedDish = item.dish as { measurement_unit?: number | null, id: number };
+      const currentUnit = item.measurement_unit;
+      const currentUnitId = (typeof currentUnit === 'object' && currentUnit) ? currentUnit.id : currentUnit;
+
+      if (selectedDish.measurement_unit && selectedDish.measurement_unit !== currentUnitId) {
+        if (measurementUnitsStore.measurementUnits.length === 0) {
+          await measurementUnitsStore.fetchRecords(1);
+        }
+
+        const defaultUnit = measurementUnitsStore.measurementUnits.find(
+            unit => unit.id === selectedDish.measurement_unit
+        );
+
+        if (defaultUnit) {
+          item.measurement_unit = { ...defaultUnit };
+        }
+      }
+    }
+  }
 }, { deep: true });
+
+watch(() => props.initialData, (data) => {
+  if (data) {
+    const tempData = JSON.parse(JSON.stringify(data));
+
+    if (typeof tempData.supplier === 'object' && tempData.supplier !== null) {
+      supplierName.value = tempData.supplier.name;
+      tempData.supplier = tempData.supplier.id;
+    }
+
+    if (typeof tempData.warehouse === 'object' && tempData.warehouse !== null) {
+      tempData.warehouse = tempData.warehouse.id;
+    }
+
+    formData.value = tempData;
+  }
+}, { immediate: true, deep: true });
 
 const formatDateForTitle = (isoDate: string) => {
   if (!isoDate) return '';
@@ -266,17 +305,65 @@ function submit() {
   emit('submit', payload);
 }
 
+async function handleBarcodeScan(barcode: string) {
+  if (props.isViewMode) return;
+
+  dishStore.searchQuery.barcode = barcode;
+  await dishStore.fetchRecords(1);
+  dishStore.searchQuery.barcode = '';
+
+  const foundDish = dishStore.dishes[0];
+
+  if (foundDish) {
+    await addRow();
+    const lastIndex = (formData.value.invoice_dish_items?.length || 0) - 1;
+    if (lastIndex >= 0) {
+      formData.value.invoice_dish_items[lastIndex].dish = foundDish;
+      await nextTick();
+      quantityRefs.value[lastIndex]?.focus();
+    }
+  } else {
+    uiStore.showNotification({
+      message: t('messages.barcodeNotFound', { barcode }),
+      type: 'warning',
+    });
+  }
+}
+
 function handleGlobalKeyDown(event: KeyboardEvent) {
-  if (event.key === 'Insert' && !props.isViewMode) {
+  if (props.isViewMode) return;
+
+  if (event.key === 'Insert') {
     event.preventDefault();
     addRow();
+    return;
   }
+
+  const currentTime = Date.now();
+  if (currentTime - lastKeystrokeTime > 100) {
+    barcodeBuffer = '';
+  }
+
+  if (event.key === 'Enter') {
+    if (barcodeBuffer.length > 2) {
+      event.preventDefault();
+      handleBarcodeScan(barcodeBuffer);
+    }
+    barcodeBuffer = '';
+  } else if (event.key.length === 1) {
+    barcodeBuffer += event.key;
+  }
+
+  lastKeystrokeTime = currentTime;
 }
 
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalKeyDown);
   if (warehouseStore.warehouses.length === 0) {
     warehouseStore.fetchRecords(1);
+  }
+  if (measurementUnitsStore.measurementUnits.length === 0) {
+    measurementUnitsStore.fetchRecords(1);
   }
 });
 

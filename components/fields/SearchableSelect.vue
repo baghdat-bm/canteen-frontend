@@ -8,7 +8,7 @@
         :placeholder="placeholder"
         @keydown="handleKeydown"
         @focus="onFocus"
-        class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        class="w-full p-2 border border-gray-300 rounded-md shadow-sm"
         :class="{ 'bg-gray-100': disabled }"
         :disabled="disabled"
     />
@@ -76,38 +76,21 @@ function focus() {
 }
 defineExpose({ focus });
 
-// --- ИЗМЕНЕНИЕ: Добавлены диагностические сообщения ---
+// --- Watchers ---
 watch(
     () => [props.modelValue, props.displayField],
     ([newModel, newDisplayField]) => {
-      console.log('--- [SearchableSelect] Watch Fired ---');
-      console.log('-> Получен displayField:', newDisplayField);
-      // Используем structuredClone для безопасного логирования, чтобы избежать мутаций
-      console.log('-> Получен modelValue:', newModel ? JSON.parse(JSON.stringify(newModel)) : newModel);
-
       if (typeof newModel === 'object' && newModel && newDisplayField in newModel) {
-        console.log('✅ Условие выполнено: modelValue является объектом и содержит поле', newDisplayField);
         searchTerm.value = newModel[newDisplayField];
-        console.log('-> searchTerm установлен в:', searchTerm.value);
       } else if (!newModel) {
-        console.log('🟡 Условие выполнено: modelValue пуст. Очищаем searchTerm.');
         searchTerm.value = '';
-      } else {
-        console.error('❌ Условие НЕ выполнено. Не удалось установить searchTerm.');
-        console.log('   - typeof newModel:', typeof newModel);
-        console.log('   - newModel (truthy):', !!newModel);
-        if (typeof newModel === 'object' && newModel) {
-          console.log(`   - Проверка '${newDisplayField}' in newModel:`, newDisplayField in newModel);
-        }
       }
-      console.log('--- [SearchableSelect] End of Watch ---');
     },
     {
       immediate: true,
       deep: true,
     }
 );
-// --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
 // --- Positioning Logic ---
 function updateDropdownPosition() {
