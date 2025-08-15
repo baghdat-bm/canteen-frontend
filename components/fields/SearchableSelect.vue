@@ -8,7 +8,7 @@
         :placeholder="placeholder"
         @keydown="handleKeydown"
         @focus="onFocus"
-        class="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+        class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
         :class="{ 'bg-gray-100': disabled }"
         :disabled="disabled"
     />
@@ -123,8 +123,22 @@ function onFocus() {
   }
 }
 
-// --- Keyboard Navigation ---
+// --- ИЗМЕНЕНИЕ: Улучшенная логика обработки нажатий ---
 async function handleKeydown(event: KeyboardEvent) {
+  // Унифицируем обработку Enter
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    // Если выпадающий список открыт и элемент выделен, выбираем его
+    if (showDropdown.value && highlightedIndex.value > -1) {
+      selectItem(searchResults.value[highlightedIndex.value]);
+    } else {
+      // В противном случае (список закрыт, или ничего не выделено) - выполняем поиск
+      await performSearch();
+    }
+    return;
+  }
+
+  // Обработка остальных клавиш навигации, только если список открыт
   if (showDropdown.value && searchResults.value.length > 0) {
     switch (event.key) {
       case 'ArrowDown':
@@ -139,22 +153,14 @@ async function handleKeydown(event: KeyboardEvent) {
           highlightedIndex.value--;
         }
         break;
-      case 'Enter':
-        event.preventDefault();
-        if (highlightedIndex.value !== -1) {
-          selectItem(searchResults.value[highlightedIndex.value]);
-        }
-        break;
       case 'Escape':
         event.preventDefault();
         hide();
         break;
     }
-  } else if (event.key === 'Enter') {
-    event.preventDefault();
-    await performSearch();
   }
 }
+// --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
 onMounted(() => {
   window.addEventListener('resize', updateDropdownPosition);
