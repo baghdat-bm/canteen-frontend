@@ -8,7 +8,7 @@
         :placeholder="placeholder"
         @keydown="handleKeydown"
         @focus="onFocus"
-        class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        class="w-full p-2 border border-gray-400 rounded-md shadow-sm"
         :class="{ 'bg-gray-100': disabled }"
         :disabled="disabled"
     />

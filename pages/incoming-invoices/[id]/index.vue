@@ -23,7 +23,7 @@
     <div class="flex justify-end items-center mt-4">
       <div class="flex space-x-2">
         <NuxtLink :to="localePath('/incoming-invoices')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
-          {{ $t('actions.toList') }}
+          {{ $t('navigation.backToList') }}
         </NuxtLink>
         <NuxtLink :to="localePath(`/incoming-invoices/${route.params.id}/edit`)" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
           {{ $t('actions.edit') }}

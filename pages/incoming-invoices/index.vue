@@ -16,8 +16,9 @@
 
         <!-- Фильтр по складу -->
         <div>
-          <label for="warehouse" class="block text-sm font-medium text-gray-700">{{ $t('warehouse.item') }}</label>
-          <select id="warehouse" v-model="localSearchQuery.warehouse" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          <label for="warehouse" class="block text-sm font-medium text-gray-700">{{ $t('warehouse.refName') }}</label>
+          <!-- ИЗМЕНЕНИЕ: Добавлен класс h-10 и заменен p-2 на px-2 -->
+          <select id="warehouse" v-model="localSearchQuery.warehouse" class="mt-1 block w-full h-10 px-2 border border-gray-300 bg-white rounded-md shadow-sm sm:text-sm">
             <option :value="null">{{ $t('all') }}</option>
             <option v-for="warehouse in warehouseStore.warehouses" :key="warehouse.id" :value="warehouse.id">
               {{ warehouse.name }}
@@ -27,26 +28,28 @@
 
         <!-- Фильтр по поставщику -->
         <div>
-          <label for="supplier" class="block text-sm font-medium text-gray-700">{{ $t('supplier.item') }}</label>
+          <label for="supplier" class="block text-sm font-medium text-gray-700">{{ $t('docs.supplier') }}</label>
           <div class="mt-1 flex rounded-md shadow-sm">
-            <div class="relative flex items-stretch flex-grow focus-within:z-10">
+            <div class="relative flex items-stretch flex-grow">
+              <!-- ИЗМЕНЕНИЕ: Добавлен класс h-10 и заменен p-2 на px-2 -->
               <input
                   type="text"
                   readonly
                   :value="selectedSupplierName"
-                  :placeholder="$t('supplier.notSelected')"
-                  class="p-2 block w-full rounded-none rounded-l-md border-gray-300 bg-gray-50"
+                  class="h-10 px-2 block w-full border border-gray-300 rounded-none rounded-l-md bg-gray-50"
               />
             </div>
-            <button @click="localSearchQuery.supplier = null; selectedSupplierName = ''" v-if="localSearchQuery.supplier" type="button" class="-ml-px relative inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+            <!-- ИЗМЕНЕНИЕ: Добавлен класс h-10 -->
+            <button @click="localSearchQuery.supplier = null; selectedSupplierName = ''" v-if="localSearchQuery.supplier" type="button" class="h-10 -ml-px relative inline-flex items-center space-x-2 px-3 border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
               <X class="h-5 w-5 text-gray-400" />
             </button>
-            <button @click="showContractorDialog = true" type="button" class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100">
-              <Search class="h-5 w-5 text-gray-400" />
-              <span>{{ $t('actions.select') }}</span>
+            <!-- ИЗМЕНЕНИЕ: Добавлен класс h-10 -->
+            <button @click="showContractorDialog = true" type="button" class="h-10 -ml-px relative inline-flex items-center space-x-2 px-4 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100">
+              <SquareMousePointer class="h-5 w-5 text-gray-400" />
             </button>
           </div>
         </div>
+
       </div>
       <!-- Кнопки управления фильтром -->
       <div class="flex justify-end space-x-2 mt-4 pt-4 border-t">
@@ -77,11 +80,11 @@
         <tr>
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('date.item') }}</th>
-          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('supplier.item') }}</th>
-          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('warehouse.item') }}</th>
-          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('amount') }}</th>
-          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('paid_amount') }}</th>
-          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('status') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('docs.supplier') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('warehouse.refName') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('numbers.amount') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('numbers.paid_amount') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('docs.status') }}</th>
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('actions.operations') }}</th>
         </tr>
         </thead>
@@ -95,9 +98,8 @@
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.amount }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ invoice.paid_amount }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">
-              <span :class="invoice.accepted ? 'text-green-600' : 'text-red-600'">
-                {{ invoice.accepted ? $t('status.accepted') : $t('status.notAccepted') }}
-              </span>
+            <SquareCheckBig v-if="invoice.accepted" class="w-5 h-5 text-green-600" />
+            <CircleOff v-else class="w-5 h-5 text-red-600" />
           </td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">
             <div class="flex items-center space-x-4">
@@ -131,7 +133,7 @@
     <ConfirmDialog
         v-model="showDeleteModal"
         :title="$t('captions.confirmDelete')"
-        :message="$t('incomingInvoice.confirmDelete')"
+        :message="$t('docs.confirmDelete')"
         :confirm-button-text="$t('actions.delete')"
         @confirm="deleteItemConfirmed"
     />
@@ -145,7 +147,7 @@ import { useWarehouseStore } from '~/stores/warehouses';
 import { type Contractor } from '~/stores/contractors';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { Pencil, Trash2, Search, X } from 'lucide-vue-next';
+import { Pencil, Trash2, SquareCheckBig, CircleOff, X, SquareMousePointer } from 'lucide-vue-next';
 
 // Импорт компонентов
 import BaseSpinner from '~/components/BaseSpinner.vue';

@@ -26,7 +26,7 @@
       >
         <div v-if="modelValue" class="p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
           <!-- Заголовок окна -->
-          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{{ title }}</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{{ $t('contractor.selectOne') }}</h3>
 
           <!-- Фильтры поиска внутри диалога -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">

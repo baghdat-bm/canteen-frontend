@@ -25,12 +25,12 @@
       <!-- Документы-->
       <div>
         <!-- Кнопка для раскрытия меню в развернутом состоянии -->
-        <button v-if="uiStore.isSidebarOpen" @click="isRefsOpen = !isRefsOpen" class="w-full flex items-center justify-between px-6 py-3 mt-2 hover:bg-gray-700">
+        <button v-if="uiStore.isSidebarOpen" @click="isDocsOpen = !isDocsOpen" class="w-full flex items-center justify-between px-6 py-3 mt-2 hover:bg-gray-700">
           <div class="flex items-center">
             <Files class="w-6 h-6" />
             <span class="mx-4">{{ $t('docs.docs_name') }}</span>
           </div>
-          <ChevronDown :class="['w-5 h-5 transition-transform', isRefsOpen ? 'rotate-180' : '']" />
+          <ChevronDown :class="['w-5 h-5 transition-transform', isDocsOpen ? 'rotate-180' : '']" />
         </button>
 
         <!-- Просто иконка в свернутом состоянии -->
@@ -39,7 +39,7 @@
         </div>
 
         <!-- Выпадающее меню для развернутого состояния -->
-        <div v-if="isRefsOpen && uiStore.isSidebarOpen" class="bg-gray-900 py-1 transition-all duration-300">
+        <div v-if="isDocsOpen && uiStore.isSidebarOpen" class="bg-gray-900 py-1 transition-all duration-300">
           <NuxtLink
               v-for="link in docLinks"
               :key="link.name"
