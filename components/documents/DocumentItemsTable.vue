@@ -11,6 +11,13 @@
         </tr>
         </thead>
         <tbody>
+        <!-- Сообщение для пустой таблицы -->
+        <tr v-if="items.length === 0">
+          <td colspan="10" class="text-center text-gray-500 py-4 italic">
+            {{ $t('messages.pressAddRowToAddNewDish') }}
+          </td>
+        </tr>
+
         <tr v-for="(item, index) in items" :key="index">
           <!-- Содержимое строк передается через слоты -->
           <slot name="row" :item="item" :index="index"></slot>
@@ -23,8 +30,8 @@
         </tbody>
       </table>
     </div>
-    <button v-if="!isViewMode" @click="emit('addRow')" class="mt-4 px-4 py-2 border border-dashed rounded-md text-sm text-indigo-600 hover:bg-indigo-50">
-      {{ addRowText }} (Insert)
+    <button v-if="!isViewMode" @click="emit('addRow')" class="mt-4 px-4 py-2 border rounded-md text-sm text-indigo-600 hover:bg-indigo-50">
+      {{ addRowText }} <em>(Insert)</em>
     </button>
   </div>
 </template>

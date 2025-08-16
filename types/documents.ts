@@ -8,12 +8,13 @@ export interface MeasurementUnitLite { id: number; name_kz?: string; name_ru?: s
  * Универсальный интерфейс для элемента в табличной части любого документа.
  * T - тип основной сущности (например, DishLite).
  */
-export interface DocumentItem<T> {
+export interface DocumentTableItem<T> {
     id?: number;
-    item: T | number; // `item` вместо `dish` для универсальности
+    dish: T | number;
     quantity: number;
     measurement_unit: MeasurementUnitLite | number;
     cost_price: number;
+    amount: number;
     sale_price: number;
 }
 
@@ -31,7 +32,7 @@ export interface DocumentDetail<T> {
     shipping_cost: number;
     paid_amount: number;
     author: string;
-    items: DocumentItem<T>[]; // `items` вместо `invoice_dish_items`
+    items: DocumentTableItem<T>[]; // `items` вместо `invoice_dish_items`
 }
 
 /**
@@ -50,10 +51,12 @@ export interface DocumentInList {
     author: string;
 }
 
-// --- Конкретные типы для Приходной накладной ---
+//// --- Конкретные типы --- ////
+
+// --- Приходная накладная ---
 
 // Элемент табличной части Приходной накладной
-export type IncomingInvoiceItem = DocumentItem<DishLite>;
+export type IncomingInvoiceItem = DocumentTableItem<DishLite>;
 
 // Детальная информация о Приходной накладной (для API)
 export interface IncomingInvoiceDetail extends Omit<DocumentDetail<DishLite>, 'items' | 'warehouse' | 'supplier'> {
@@ -81,6 +84,7 @@ export type IncomingInvoicePayload = Omit<
         measurement_unit: number;
         quantity: number;
         cost_price: number;
+        amount: number;
         sale_price: number;
     }>;
 };

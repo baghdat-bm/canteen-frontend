@@ -28,7 +28,7 @@
         <button v-if="uiStore.isSidebarOpen" @click="isRefsOpen = !isRefsOpen" class="w-full flex items-center justify-between px-6 py-3 mt-2 hover:bg-gray-700">
           <div class="flex items-center">
             <Files class="w-6 h-6" />
-            <span class="mx-4">Документы</span>
+            <span class="mx-4">{{ $t('docs.docs_name') }}</span>
           </div>
           <ChevronDown :class="['w-5 h-5 transition-transform', isRefsOpen ? 'rotate-180' : '']" />
         </button>
@@ -167,7 +167,7 @@ const showLogoutModal = ref(false);
 
 // --- Ссылки для подменю "Документы" с указанием иконок ---
 const docLinks = ref([
-  { name: 'incoming-invoices', path: '/incoming-invoices', labelKey: 'incomingInvoices', icon: FilePlus2 },
+  { name: 'incoming-invoices', path: '/incoming-invoices', labelKey: 'incomingInvoice.itemList', icon: FilePlus2 },
 ]);
 
 const docRoutes = docLinks.value.map(l => l.name);
