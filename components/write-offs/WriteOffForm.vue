@@ -4,50 +4,39 @@
     <h1 class="text-2xl font-bold mb-6 border-b pb-4">{{ formTitle }}</h1>
 
     <!-- Верхняя часть формы (шапка документа) -->
-    <div class="grid grid-cols-1 md:grid-cols-6 gap-x-6 gap-y-4 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-x-6 gap-y-4 mb-8">
 
-      <!-- СТРОКА 1 (2 колонки) -->
-      <!-- supplier.item -->
-      <div class="md:col-span-3">
-        <label class="block text-sm font-medium text-gray-700">{{ $t('docs.supplier') }}</label>
-        <div class="mt-1 flex rounded-md shadow-sm">
-          <input type="text" readonly :value="supplierName" class="p-2 block w-full border border-r-0 border-gray-300 rounded-none rounded-l-md bg-gray-50" />
-          <button v-if="!isViewMode" @click="showContractorDialog = true" type="button" class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100">
-            <Search class="h-5 w-5 text-gray-400" />
-          </button>
-        </div>
-      </div>
+      <!-- СТРОКА 1 (3 колонки) -->
       <!-- warehouse.item -->
-      <div class="md:col-span-3">
+      <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700">{{ $t('warehouse.refName') }}</label>
         <select v-model="formData.warehouse" :disabled="isViewMode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100">
           <option :value="null" disabled>{{ $t('messages.select') }}</option>
           <option v-for="w in warehouseStore.warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
         </select>
       </div>
+      <!-- writing_off_reason.item -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">{{ $t('writingOffReason.refName') }}</label>
+        <select v-model="formData.writing_off_reason" :disabled="isViewMode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100">
+          <option :value="null" disabled>{{ $t('messages.select') }}</option>
+          <option v-for="w in writingOffReasonsStore.writingOffReasons" :key="w.id" :value="w.id">
+            {{ locale === 'kz' ? w.name_kz : w.name_ru }}
+          </option>
+        </select>
+      </div>
 
-      <!-- СТРОКА 2 (3 колонки) -->
-      <!-- shipping_cost -->
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700">{{ $t('numbers.shipping_cost') }}</label>
-        <input type="number" step="0.01" v-model.number="formData.shipping_cost" :disabled="isViewMode" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100">
-      </div>
-      <!-- paid_amount -->
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700">{{ $t('numbers.paid_amount') }}</label>
-        <input type="number" step="0.01" :value="finalAmount" disabled class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
-      </div>
       <!-- status.accepted -->
-      <div class="md:col-span-2 flex items-end pb-2">
+      <div class="md:col-span-1 flex items-end pb-2">
         <input type="checkbox" v-model="formData.accepted" id="accepted" :disabled="isViewMode" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:bg-gray-100">
         <label for="accepted" class="ml-2 text-sm text-gray-900">{{ $t('docs.accepted') }}</label>
       </div>
+
     </div>
 
     <!-- Табличная часть -->
-    <!-- ИСПОЛЬЗУЕМ НОВЫЙ КОМПОНЕНТ ТАБЛИЦЫ -->
     <DocumentItemsTable
-        :items="formData.invoice_dish_items"
+        :items="formData.write_off_dish_items"
         :title="$t('dish.itemList')"
         :add-row-text="$t('actions.addRow')"
         :is-view-mode="isViewMode"
@@ -55,12 +44,9 @@
         @remove-row="removeRow"
     >
       <template #head>
-        <th class="w-2/7 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('dish.refName') }}</th>
-        <th class="w-1/7 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('measurementUnit.refName') }}</th>
-        <th class="w-1/7 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('numbers.quantity') }}</th>
-        <th class="w-1/7 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('numbers.costPrice') }}</th>
-        <th class="w-1/7 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('numbers.costAmount') }}</th>
-        <th class="w-1/7 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('numbers.salePrice') }}</th>
+        <th class="w-3/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('dish.refName') }}</th>
+        <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('measurementUnit.refName') }}</th>
+        <th class="w-1/5 px-2 py-2 text-left text-sm font-semibold text-gray-600">{{ $t('numbers.quantity') }}</th>
       </template>
       <template #row="{ item, index }">
         <td class="p-1">
@@ -76,10 +62,7 @@
           />
         </td>
         <td class="p-1"><SearchableSelect v-model="item.measurement_unit" :store="measurementUnitsStore" results-key="measurementUnits" :search-field="`name_${locale}`" :display-field="`name_${locale}`" :placeholder="$t('measurementUnit.searchPlaceholder')" :disabled="isViewMode" /></td>
-        <td class="p-1"><input :ref="el => { if (el) quantityRefs[index] = el }" type="number" step="0.01" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border border-gray-400 rounded-md shadow-sm disabled:bg-gray-100" /></td>
-        <td class="p-1"><input type="number" step="0.01" v-model.number="item.cost_price" :disabled="isViewMode" class="w-full p-2 border border-gray-400 rounded-md shadow-sm disabled:bg-gray-100" /></td>
-        <td class="p-1"><input type="number" step="0.01" :value="item.amount" disabled class="w-full p-2 border border-gray-400 rounded-md shadow-sm bg-gray-100" /></td>
-        <td class="p-1"><input type="number" step="0.01" :value="item.sale_price" @keydown.enter.prevent="addRow" class="w-full p-2 border border-gray-400 rounded-md shadow-sm disabled:bg-gray-100" /></td>
+        <td class="p-1"><input :ref="el => { if (el) quantityRefs[index] = el }" type="number" step="0.01" @keydown.enter.prevent="addRow" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border border-gray-400 rounded-md shadow-sm disabled:bg-gray-100" /></td>
       </template>
     </DocumentItemsTable>
 
@@ -96,7 +79,7 @@
       </div>
       <div v-if="!isViewMode" class="flex space-x-4">
         <NuxtLink
-            :to="localePath('/incoming-invoices')"
+            :to="localePath('/write-offs')"
             :class="['px-4 py-2 rounded-md', isSubmitting ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-300 text-gray-800 hover:bg-gray-400']"
             :aria-disabled="isSubmitting"
             :tabindex="isSubmitting ? -1 : undefined"
@@ -115,7 +98,6 @@
       </div>
     </div>
 
-    <ContractorSelectDialog v-model="showContractorDialog" @select="handleContractorSelect" />
   </div>
 </template>
 
@@ -126,16 +108,14 @@ import { useUiStore } from '~/stores/ui';
 import { useWarehouseStore } from '~/stores/warehouses';
 import { useDishStore } from '~/stores/dishes';
 import { useMeasurementUnitsStore } from '~/stores/measurementUnits';
-import type { IncomingInvoiceDetailRich } from '~/types/documents';
-import type { Contractor } from '~/stores/contractors';
+import { useWritingOffReasonsStore } from '~/stores/writingOffReasons'
+import type { WriteOffDetailRich } from '~/types/documents';
 import SearchableSelect from '~/components/fields/SearchableSelect.vue';
-import ContractorSelectDialog from '~/components/dialogs/ContractorSelectDialog.vue';
-import { Search, Trash2 } from 'lucide-vue-next';
 import BaseSpinner from '~/components/BaseSpinner.vue';
 import DocumentItemsTable from '~/components/documents/DocumentItemsTable.vue'
 
 const props = defineProps<{
-  initialData?: IncomingInvoiceDetailRich | null;
+  initialData?: WriteOffDetailRich | null;
   isViewMode?: boolean;
   isSubmitting?: boolean;
 }>();
@@ -147,49 +127,29 @@ const uiStore = useUiStore();
 const warehouseStore = useWarehouseStore();
 const dishStore = useDishStore();
 const measurementUnitsStore = useMeasurementUnitsStore();
+const writingOffReasonsStore = useWritingOffReasonsStore();
 
-const showContractorDialog = ref(false);
-const supplierName = ref('');
 const dishSelectRefs = ref([]);
 const quantityRefs = ref([]);
 
 let barcodeBuffer = '';
 let lastKeystrokeTime = 0;
 
-const formData = ref<Partial<IncomingInvoiceDetailRich>>({
+const formData = ref<Partial<WriteOffDetailRich>>({
   date: new Date().toISOString().slice(0, 16),
   accepted: true,
   warehouse: null,
-  supplier: null,
+  writing_off_reason: null,
   commentary: '',
-  shipping_cost: 0,
-  invoice_dish_items: [],
-  amount: 0,
-  paid_amount: 0,
   author: '',
+  write_off_dish_items: [],
 });
 
-const totalAmount = computed(() => {
-  return formData.value.invoice_dish_items?.reduce((sum, item) => {
-    return sum + (Number(item.quantity) || 0) * (Number(item.cost_price) || 0);
-  }, 0) || 0;
-});
-
-const finalAmount = computed(() => {
-  return totalAmount.value + (Number(formData.value.shipping_cost) || 0);
-});
 
 watch(formData, async (newData) => {
-  const items = newData.invoice_dish_items || [];
+  const items = newData.write_off_dish_items || [];
 
   for (const item of items) {
-    const quantity = Number(item.quantity) || 0;
-    const costPrice = Number(item.cost_price) || 0;
-    item.amount = parseFloat((quantity * costPrice).toFixed(2));
-    if (!item.sale_price || item.sale_price < costPrice) {
-      item.sale_price = parseFloat((costPrice).toFixed(2));
-    }
-
     if (typeof item.dish === 'object' && item.dish) {
       const selectedDish = item.dish as { measurement_unit?: number | null, id: number };
       const currentUnit = item.measurement_unit;
@@ -216,13 +176,12 @@ watch(() => props.initialData, (data) => {
   if (data) {
     const tempData = JSON.parse(JSON.stringify(data));
 
-    if (typeof tempData.supplier === 'object' && tempData.supplier !== null) {
-      supplierName.value = tempData.supplier.name;
-      tempData.supplier = tempData.supplier.id;
-    }
-
     if (typeof tempData.warehouse === 'object' && tempData.warehouse !== null) {
       tempData.warehouse = tempData.warehouse.id;
+    }
+
+    if (typeof tempData.writing_off_reason === 'object' && tempData.writing_off_reason !== null) {
+      tempData.writing_off_reason = tempData.writing_off_reason.id;
     }
 
     formData.value = tempData;
@@ -248,31 +207,28 @@ const formatNumberForTitle = (num: number) => {
 
 const formTitle = computed(() => {
   if (!props.initialData) {
-    return t('incomingInvoice.creating');
+    return t('writeOff.creating');
   }
 
   const formattedDate = formatDateForTitle(formData.value.date || '');
-  const formattedAmount = formatNumberForTitle(finalAmount.value);
 
   if (locale.value === 'kz') {
-    return `${formattedDate} жылғы ${formattedAmount} тг. сомасына кіріс жүкқұжаты`;
+    return `${formattedDate} жылғы қойма есебінен шығару`;
   }
-  return `Приходная накладная от ${formattedDate} на сумму ${formattedAmount} тг.`;
+  return `Списание со склада от ${formattedDate}`;
 });
 
 async function addRow() {
   if (props.isViewMode) return;
-  formData.value.invoice_dish_items?.push({
+  formData.value.write_off_dish_items?.push({
     item: null,
     measurement_unit: null,
     quantity: 1,
-    cost_price: 0,
-    sale_price: 0,
   });
 
   await nextTick();
 
-  const lastIndex = (formData.value.invoice_dish_items?.length || 0) - 1;
+  const lastIndex = (formData.value.write_off_dish_items?.length || 0) - 1;
   if (lastIndex >= 0) {
     const lastDishSelect = dishSelectRefs.value[lastIndex];
     if (lastDishSelect && typeof lastDishSelect.focus === 'function') {
@@ -282,23 +238,16 @@ async function addRow() {
 }
 
 function removeRow(index: number) {
-  formData.value.invoice_dish_items?.splice(index, 1);
-}
-
-function handleContractorSelect(contractor: Contractor) {
-  formData.value.supplier = contractor.id;
-  supplierName.value = contractor.name;
+  formData.value.write_off_dish_items?.splice(index, 1);
 }
 
 function submit() {
   const payload = JSON.parse(JSON.stringify(formData.value));
-  payload.invoice_dish_items = payload.invoice_dish_items.map(item => ({
+  payload.write_off_dish_items = payload.write_off_dish_items.map(item => ({
     ...item,
     dish: typeof item.dish === 'object' && item.dish !== null ? item.dish.id : item.dish,
     measurement_unit: typeof item.measurement_unit === 'object' && item.measurement_unit !== null ? item.measurement_unit.id : item.measurement_unit,
   }));
-  payload.amount = totalAmount.value;
-  payload.paid_amount = finalAmount.value;
   emit('submit', payload);
 }
 
@@ -313,9 +262,9 @@ async function handleBarcodeScan(barcode: string) {
 
   if (foundDish) {
     await addRow();
-    const lastIndex = (formData.value.invoice_dish_items?.length || 0) - 1;
+    const lastIndex = (formData.value.write_off_dish_items?.length || 0) - 1;
     if (lastIndex >= 0) {
-      formData.value.invoice_dish_items[lastIndex].item = foundDish;
+      formData.value.write_off_dish_items[lastIndex].item = foundDish;
       await nextTick();
       quantityRefs.value[lastIndex]?.focus();
     }
@@ -361,6 +310,9 @@ onMounted(() => {
   }
   if (measurementUnitsStore.measurementUnits.length === 0) {
     measurementUnitsStore.fetchRecords(1);
+  }
+  if (writingOffReasonsStore.writingOffReasons.length === 0) {
+    writingOffReasonsStore.fetchRecords(1);
   }
 });
 

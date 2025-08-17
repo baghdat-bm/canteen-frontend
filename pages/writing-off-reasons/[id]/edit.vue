@@ -56,9 +56,9 @@ const handleSubmit = async (formData: WritingOffReasonPayload) => {
   isSubmitting.value = true;
   try {
     await store.updateRecord(id, formData);    
-    await navigateTo(localePath('/writing-off-reasons'));
+    await navigateTo(localePath('/write-offs-reasons'));
   } catch (error) {
-    console.error('Failed to update writing-off-reasons:', error);    
+    console.error('Failed to update write-offs-reasons:', error);
     alert(t('message.couldntCreateWritingOffReason'));
   } finally {
     isSubmitting.value = false;

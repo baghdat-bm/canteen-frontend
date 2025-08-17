@@ -18,7 +18,7 @@ interface DocumentStoreConfig<ListType, DetailType, PayloadType> {
  */
 export function createDocumentStore<
     ListType extends DocumentInList,
-    DetailType extends DocumentDetail<any>,
+    DetailType extends DocumentDetail,
     PayloadType
 >(config: DocumentStoreConfig<ListType, DetailType, PayloadType>) {
 
@@ -134,8 +134,8 @@ export function createDocumentStore<
         }
 
         return {
-            list, single, isLoading, isSubmitting, totalRecords, pageSize, currentPage, searchQuery,
-            totalPages,
+            list, single, isLoading, isSubmitting, totalRecords, pageSize,
+            currentPage, searchQuery, totalPages,
             fetchRecords, fetchRecord, createRecord, updateRecord, deleteRecord,
         };
     });

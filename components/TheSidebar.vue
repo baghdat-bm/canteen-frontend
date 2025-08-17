@@ -149,7 +149,8 @@ import { ref, watch } from 'vue';
 import {
   Files, FilePlus2,
   Home, BarChart3, LogOut, CookingPot, FolderKanban, ChevronDown, 
-  Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse, Salad
+  Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse, Salad,
+  FileMinus2
 } from 'lucide-vue-next';
 import { useUiStore } from '~/stores/ui';
 import { useAuthStore } from '~/stores/auth';
@@ -168,6 +169,7 @@ const showLogoutModal = ref(false);
 // --- Ссылки для подменю "Документы" с указанием иконок ---
 const docLinks = ref([
   { name: 'incoming-invoices', path: '/incoming-invoices', labelKey: 'incomingInvoice.itemList', icon: FilePlus2 },
+  { name: 'write-offs', path: '/write-offs', labelKey: 'writeOff.itemList', icon: FileMinus2 },
 ]);
 
 const docRoutes = docLinks.value.map(l => l.name);
@@ -182,7 +184,7 @@ const isDocsOpen = ref(
 const refLinks = ref([
   { name: 'contractors', path: '/contractors', labelKey: 'contractors', icon: Building2 },
   { name: 'measurement-units', path: '/measurement-units', labelKey: 'refs.measurement_units', icon: Ruler },
-  { name: 'writing-off-reasons', path: '/writing-off-reasons', labelKey: 'refs.writingOffReasons', icon: BookMinus },
+  { name: 'write-offs-reasons', path: '/writing-off-reasons', labelKey: 'refs.writingOffReasons', icon: BookMinus },
   { name: 'warehouses', path: '/warehouses', labelKey: 'warehouse.itemList', icon: Warehouse },
   { name: 'dishes-categories', path: '/dishes-categories', labelKey: 'dishCategory.itemList', icon: UtensilsCrossed },
   { name: 'the-dishes', path: '/the-dishes', labelKey: 'dish.itemList', icon: Salad },

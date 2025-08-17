@@ -23,10 +23,10 @@ const localePath = useLocalePath();
 const handleSubmit = async (formData: WritingOffReasonPayload) => {
   try {
     await store.createRecord(formData);
-    await navigateTo(localePath('/writing-off-reasons'));
+    await navigateTo(localePath('/write-offs-reasons'));
   }
   catch (error) {
-    console.error('Failed to create writing-off-reasons:', error);    
+    console.error('Failed to create write-offs-reasons:', error);
     alert(t('message.couldntCreateWritingOffReason'));
   }
 };

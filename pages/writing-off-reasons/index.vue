@@ -3,7 +3,7 @@
     <!-- Заголовок страницы и кнопка создания -->
     <div class="flex justify-between items-center mb-2">
       <h1 class="text-2xl font-bold">{{ $t('refs.writingOffReasons') }}</h1>
-      <NuxtLink :to="localePath('/writing-off-reasons/create')"
+      <NuxtLink :to="localePath('/write-offs-reasons/create')"
         class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
         {{ $t('create_new') }}
       </NuxtLink>

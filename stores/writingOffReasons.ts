@@ -91,7 +91,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
             totalRecords.value = response.count;
 
         } catch (error) {            
-            const errText = 'Failed to fetch writing-off-reasons';
+            const errText = 'Failed to fetch write-offs-reasons';
             uiStore.showNotification({
                 message: errText,
                 type: 'error',
@@ -138,7 +138,7 @@ export const useWritingOffReasonsStore = defineStore('writingOffReasons', () => 
                 body: payload,
             });
         } catch (error) {            
-            const errText = 'Failed to create writing-off-reasons';
+            const errText = 'Failed to create write-offs-reasons';
             uiStore.showNotification({
                 message: errText,
                 type: 'error',

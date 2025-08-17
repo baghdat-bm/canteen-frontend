@@ -57,7 +57,7 @@
 
         <!-- Кнопки действий -->
         <div class="mt-8 flex justify-end space-x-4">
-          <NuxtLink :to="localePath('/writing-off-reasons')"
+          <NuxtLink :to="localePath('/write-offs-reasons')"
             class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
             {{ $t('navigation.backToList') }}
           </NuxtLink>
