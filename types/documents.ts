@@ -109,7 +109,7 @@ export interface WriteOffDetail extends DocumentDetail {
 export interface WriteOffDetailRich extends DocumentDetail {
     warehouse: WarehouseLite | number;
     writing_off_reason: WritingOffReasonLite | number;
-    write_off_dish_items: WriteOffDishItem[];
+    movement_dish_items: WriteOffDishItem[];
 }
 
 // Элемент в списке Списания со склада
@@ -121,6 +121,43 @@ export interface WriteOffList extends DocumentInList {
 // Payload для создания/обновления Списания со склада
 export type WriteOffPayload = Omit< WriteOffDetail, 'id' | 'author'> & {
     write_off_dish_items: Array<{
+        id?: number;
+        dish: number;
+        measurement_unit: number;
+        quantity: number;
+    }>;
+};
+
+
+// ======================================= //
+//// --- ПЕРЕМЕЩЕНИЕ НА СКЛАД --- ////
+
+// Элемент табличной части Перемещения на склад
+export type MovementDishItem = DocumentTableItem;
+
+// Детальная информация о Перемещении на склад (для API)
+export interface MovementDishDetail extends DocumentDetail {
+    warehouse_from: number;
+    warehouse_to: number;
+    movement_dish_items: MovementDishItem[];
+}
+
+// Детальная информация о Перемещении на склад (для формы, с объектами)
+export interface MovementDishDetailRich extends DocumentDetail {
+    warehouse_from: WarehouseLite | number;
+    warehouse_to: WarehouseLite | number;
+    movement_dish_items: MovementDishItem[];
+}
+
+// Элемент в списке Перемещении на склад
+export interface MovementDishList extends DocumentInList {
+    warehouse_from: WarehouseLite;
+    warehouse_to: WarehouseLite;
+}
+
+// Payload для создания/обновления Перемещении на склад
+export type MovementDishPayload = Omit< MovementDishDetail, 'id' | 'author'> & {
+    movement_dish_items: Array<{
         id?: number;
         dish: number;
         measurement_unit: number;

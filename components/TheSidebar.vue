@@ -150,7 +150,7 @@ import {
   Files, FilePlus2,
   Home, BarChart3, LogOut, CookingPot, FolderKanban, ChevronDown, 
   Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse, Salad,
-  FileMinus2
+  FileMinus2, FileDiff
 } from 'lucide-vue-next';
 import { useUiStore } from '~/stores/ui';
 import { useAuthStore } from '~/stores/auth';
@@ -170,6 +170,7 @@ const showLogoutModal = ref(false);
 const docLinks = ref([
   { name: 'incoming-invoices', path: '/incoming-invoices', labelKey: 'incomingInvoice.itemList', icon: FilePlus2 },
   { name: 'write-offs', path: '/write-offs', labelKey: 'writeOff.itemList', icon: FileMinus2 },
+  { name: 'movement-dishes', path: '/movement-dishes', labelKey: 'movementDish.itemList', icon: FileDiff },
 ]);
 
 const docRoutes = docLinks.value.map(l => l.name);

@@ -36,7 +36,7 @@
 
     <!-- Табличная часть -->
     <DocumentItemsTable
-        :items="formData.write_off_dish_items"
+        :items="formData.movement_dish_items"
         :title="$t('dish.itemList')"
         :add-row-text="$t('actions.addRow')"
         :is-view-mode="isViewMode"
@@ -142,12 +142,12 @@ const formData = ref<Partial<WriteOffDetailRich>>({
   writing_off_reason: null,
   commentary: '',
   author: '',
-  write_off_dish_items: [],
+  movement_dish_items: [],
 });
 
 
 watch(formData, async (newData) => {
-  const items = newData.write_off_dish_items || [];
+  const items = newData.movement_dish_items || [];
 
   for (const item of items) {
     if (typeof item.dish === 'object' && item.dish) {
@@ -198,13 +198,6 @@ const formatDateForTitle = (isoDate: string) => {
   return new Intl.DateTimeFormat(locale.value === 'kz' ? 'kk-KZ' : 'ru-RU', options).format(date);
 };
 
-const formatNumberForTitle = (num: number) => {
-  return new Intl.NumberFormat(locale.value === 'kz' ? 'kk-KZ' : 'ru-RU', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(num || 0);
-};
-
 const formTitle = computed(() => {
   if (!props.initialData) {
     return t('writeOff.creating');
@@ -220,15 +213,15 @@ const formTitle = computed(() => {
 
 async function addRow() {
   if (props.isViewMode) return;
-  formData.value.write_off_dish_items?.push({
-    item: null,
+  formData.value.movement_dish_items?.push({
+    dish: null,
     measurement_unit: null,
     quantity: 1,
   });
 
   await nextTick();
 
-  const lastIndex = (formData.value.write_off_dish_items?.length || 0) - 1;
+  const lastIndex = (formData.value.movement_dish_items?.length || 0) - 1;
   if (lastIndex >= 0) {
     const lastDishSelect = dishSelectRefs.value[lastIndex];
     if (lastDishSelect && typeof lastDishSelect.focus === 'function') {
@@ -238,7 +231,7 @@ async function addRow() {
 }
 
 function removeRow(index: number) {
-  formData.value.write_off_dish_items?.splice(index, 1);
+  formData.value.movement_dish_items?.splice(index, 1);
 }
 
 function submit() {
@@ -262,9 +255,9 @@ async function handleBarcodeScan(barcode: string) {
 
   if (foundDish) {
     await addRow();
-    const lastIndex = (formData.value.write_off_dish_items?.length || 0) - 1;
+    const lastIndex = (formData.value.movement_dish_items?.length || 0) - 1;
     if (lastIndex >= 0) {
-      formData.value.write_off_dish_items[lastIndex].item = foundDish;
+      formData.value.movement_dish_items[lastIndex].dish = foundDish;
       await nextTick();
       quantityRefs.value[lastIndex]?.focus();
     }
