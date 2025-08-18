@@ -196,3 +196,13 @@ export interface SellingDishDetail extends DocumentDetail {
 
     selling_dish_items: SellingDishItem[];
 }
+
+// Детальная информация о Продажа блюд (для формы, с объектами)
+export interface SellingDishDetailRich extends DocumentDetail {
+    warehouse: WarehouseLite | number;
+    student: SupplierLite | number;
+    shipping_cost: number;
+    paid_amount: number;
+    amount: number;
+    invoice_dish_items: SellingDishItem[];
+}
