@@ -164,3 +164,35 @@ export type MovementDishPayload = Omit< MovementDishDetail, 'id' | 'author'> & {
         quantity: number;
     }>;
 };
+
+
+// ======================================= //
+//// --- ПРОДАЖА БЛЮД --- ////
+
+// Элемент табличной части Продажа блюд
+export interface SellingDishItem extends DocumentTableItem {
+    sale_price: number;
+    amount: number;
+}
+
+// Детальная информация о Продажа блюд (для API)
+export interface SellingDishDetail extends DocumentDetail {
+    warehouse: number;
+    student: number;
+    amount: number;
+    paid_amount: number;
+    payment_date: string;
+    payment_method: string;
+    refund_amount: number;
+    process_id: string;
+    last_status: string;
+    error_text: string;
+    transaction_id: string;
+    refund_transaction_id: string;
+    currency: string;
+    card_mask: string;
+    terminal: string;
+    response_data: string;
+
+    selling_dish_items: SellingDishItem[];
+}
