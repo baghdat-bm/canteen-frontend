@@ -63,7 +63,7 @@ export function createDocumentStore<
                 totalRecords.value = data.count;
             } catch (error) {
                 console.error(`Failed to fetch ${config.storeId}:`, error);
-                uiStore.showNotification({ message: t('message.fetchError', { item: t(config.itemListKey) }), type: 'error' });
+                uiStore.showNotification({ message: t('messages.fetchListError', { item: t(config.itemListKey) }), type: 'error' });
             } finally {
                 isLoading.value = false;
             }
@@ -78,7 +78,7 @@ export function createDocumentStore<
                 single.value = await api.docs<DetailType>(`${config.endpoint}${id}/`, { method: 'get' });
             } catch (error) {
                 console.error(`Failed to fetch ${config.storeId} with id ${id}:`, error);
-                uiStore.showNotification({ message: t('message.fetchErrorItem'), type: 'error' });
+                uiStore.showNotification({ message: t('messages.fetchItemError'), type: 'error' });
             } finally {
                 isLoading.value = false;
             }
@@ -90,11 +90,11 @@ export function createDocumentStore<
             isSubmitting.value = true;
             try {
                 const created = await api.docs<DetailType>(config.endpoint, { method: 'POST', body: payload });
-                uiStore.showNotification({ message: t('message.createSuccess', { item: t(config.itemKey) }), type: 'success' });
+                uiStore.showNotification({ message: t('messages.createSuccess', { item: t(config.itemKey) }), type: 'success' });
                 return created;
             } catch (error) {
                 console.error(`Failed to create ${config.storeId}:`, error);
-                uiStore.showNotification({ message: t('message.createError', { item: t(config.itemKey) }), type: 'error' });
+                uiStore.showNotification({ message: t('messages.createError', { item: t(config.itemKey) }), type: 'error' });
                 return null;
             } finally {
                 isSubmitting.value = false;
@@ -107,11 +107,11 @@ export function createDocumentStore<
             isSubmitting.value = true;
             try {
                 const updated = await api.docs<DetailType>(`${config.endpoint}${id}/`, { method: 'PUT', body: payload });
-                uiStore.showNotification({ message: t('message.updateSuccess', { item: t(config.itemKey) }), type: 'success' });
+                uiStore.showNotification({ message: t('messages.updateSuccess', { item: t(config.itemKey) }), type: 'success' });
                 return updated;
             } catch (error) {
                 console.error(`Failed to update ${config.storeId} with id ${id}:`, error);
-                uiStore.showNotification({ message: t('message.updateError', { item: t(config.itemKey) }), type: 'error' });
+                uiStore.showNotification({ message: t('messages.updateError', { item: t(config.itemKey) }), type: 'error' });
                 return null;
             } finally {
                 isSubmitting.value = false;
@@ -121,15 +121,20 @@ export function createDocumentStore<
         async function deleteRecord(id: number) {
             const uiStore = useUiStore();
             const { t } = useNuxtApp().$i18n;
+
+            uiStore.showActionOverlay(t('messages.deleting'));
+
             try {
                 await api.docs(`${config.endpoint}${id}/`, { method: 'DELETE' });
                 await fetchRecords(currentPage.value);
-                uiStore.showNotification({ message: t('message.deleteSuccess', { item: t(config.itemKey) }), type: 'success' });
+                uiStore.showNotification({ message: t('messages.deleteSuccess', { item: t(config.itemKey) }), type: 'success' });
                 return true;
             } catch (error) {
                 console.error(`Failed to delete ${config.storeId} with id ${id}:`, error);
-                uiStore.showNotification({ message: t('message.deleteError', { item: t(config.itemKey) }), type: 'error' });
+                uiStore.showNotification({ message: t('messages.deleteError', { item: t(config.itemKey) }), type: 'error' });
                 return false;
+            } finally {
+                uiStore.hideActionOverlay();
             }
         }
 

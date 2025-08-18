@@ -1,7 +1,5 @@
 <template>
-  <!-- Обертка для уведомления и основного макета -->
   <div>
-    <!-- 1. Размещаем компонент уведомлений здесь -->
     <TheNotification />
 
     <div class="relative min-h-screen lg:flex">
@@ -20,12 +18,14 @@
         </main>
       </div>
     </div>
+
+    <ActionOverlay />
   </div>
 </template>
 
 <script setup>
 import { useUiStore } from '~/stores/ui';
-// 2. Импортируем новый компонент
+import ActionOverlay from '~/components/ActionOverlay.vue';
 import TheNotification from '~/components/TheNotification.vue';
 
 const uiStore = useUiStore();
