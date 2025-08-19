@@ -10,13 +10,7 @@
     <div class="p-4 bg-white rounded-lg shadow mb-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <DateRangePicker v-model="localSearchQuery.dates" />
-        <div>
-          <label class="block text-sm font-medium text-gray-700">{{ $t('warehouse.refName') }}</label>
-          <select v-model="localSearchQuery.warehouse" class="mt-1 block w-full h-10 px-2 border border-gray-300 bg-white rounded-md shadow-sm sm:text-sm">
-            <option :value="null">{{ $t('all') }}</option>
-            <option v-for="warehouse in warehouseStore.warehouses" :key="warehouse.id" :value="warehouse.id">{{ warehouse.name }}</option>
-          </select>
-        </div>
+
         <div>
           <label class="block text-sm font-medium text-gray-700">{{ $t('student.refName') }}</label>
           <div class="mt-1 flex rounded-md shadow-sm">
@@ -29,6 +23,15 @@
             </button>
           </div>
         </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ $t('warehouse.refName') }}</label>
+          <select v-model="localSearchQuery.warehouse" class="mt-1 block w-full h-10 px-2 border border-gray-300 bg-white rounded-md shadow-sm sm:text-sm">
+            <option :value="null">{{ $t('all') }}</option>
+            <option v-for="warehouse in warehouseStore.warehouses" :key="warehouse.id" :value="warehouse.id">{{ warehouse.name }}</option>
+          </select>
+        </div>
+
       </div>
       <div class="flex justify-end space-x-2 mt-4 pt-4 border-t">
         <button @click="handleReset" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">{{ $t('search.reset') }}</button>
@@ -47,6 +50,7 @@
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('date.item') }}</th>
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('student.refName') }}</th>
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('warehouse.refName') }}</th>
+          <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('numbers.amount') }}</th>
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('numbers.paid_amount') }}</th>
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('docs.status') }}</th>
           <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{{ $t('actions.operations') }}</th>
@@ -58,6 +62,7 @@
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ formatDate(item.date) }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ item.student.full_name }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ item.warehouse.name }}</td>
+          <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ item.amount }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ item.paid_amount }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">
             <SquareCheckBig v-if="item.accepted" class="w-5 h-5 text-green-600" />

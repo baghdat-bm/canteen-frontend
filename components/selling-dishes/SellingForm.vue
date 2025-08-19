@@ -22,11 +22,19 @@
           <option v-for="w in warehouseStore.warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
         </select>
       </div>
+    </div>
 
-      <!-- СТРОКА 2 -->
+    <!-- СТРОКА 2 -->
+    <div class="grid grid-cols-1 md:grid-cols-8 gap-x-6 gap-y-4 mb-8">
+      <!-- ИЗМЕНЕНИЕ: Поле Amount теперь disabled и привязано к formData.amount -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">{{ $t('numbers.amount') }}</label>
+        <input type="number" step="0.01" :value="formData.amount" disabled class="mt-1 block w-full h-10 px-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+      </div>
+      <!-- ИЗМЕНЕНИЕ: Поле Paid Amount теперь редактируемое -->
       <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700">{{ $t('numbers.paid_amount') }}</label>
-        <input type="number" step="0.01" :value="totalAmount" disabled class="mt-1 block w-full h-10 px-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+        <input type="number" step="0.01" v-model.number="formData.paid_amount" :disabled="isViewMode" class="mt-1 block w-full h-10 px-2 border border-gray-300 rounded-md shadow-sm">
       </div>
       <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700">{{ $t('sellingDish.payment_method') }}</label>
@@ -72,9 +80,9 @@
           />
         </td>
         <td class="p-1"><SearchableSelect v-model="item.measurement_unit" :store="measurementUnitsStore" results-key="measurementUnits" :search-field="`name_${locale}`" :display-field="`name_${locale}`" :disabled="isViewMode" /></td>
-        <td class="p-1"><input type="number" step="1" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border rounded-md shadow-sm disabled:bg-gray-100" /></td>
-        <td class="p-1"><input type="number" step="1" v-model.number="item.sale_price" @keydown.enter.prevent="addRow" :disabled="isViewMode" class="w-full p-2 border rounded-md shadow-sm disabled:bg-gray-100" /></td>
-        <td class="p-1"><input type="number" step="1" :value="item.amount" disabled class="w-full p-2 border rounded-md shadow-sm bg-gray-100" /></td>
+        <td class="p-1"><input type="number" step="0.01" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border rounded-md shadow-sm disabled:bg-gray-100" /></td>
+        <td class="p-1"><input type="number" step="0.01" v-model.number="item.sale_price" @keydown.enter.prevent="addRow" :disabled="isViewMode" class="w-full p-2 border rounded-md shadow-sm disabled:bg-gray-100" /></td>
+        <td class="p-1"><input type="number" step="0.01" :value="item.amount" disabled class="w-full p-2 border rounded-md shadow-sm bg-gray-100" /></td>
       </template>
     </DocumentItemsTable>
 
@@ -146,50 +154,57 @@ const formData = ref<Partial<SellingDishDetailRich>>({
   commentary: '',
   payment_method: 'QR',
   selling_dish_items: [],
+  amount: 0,
+  paid_amount: 0, // Инициализируем
 });
 
-const totalAmount = computed(() => {
-  return formData.value.selling_dish_items?.reduce((sum, item) => sum + (Number(item.amount) || 0), 0) || 0;
-});
+// --- ИЗМЕНЕНИЕ: Убран computed, так как `amount` теперь в state ---
+// const totalAmount = computed(() => ...);
 
+// --- ИЗМЕНЕНИЕ: Улучшенная логика в watch ---
 watch(formData, async (newData) => {
+  let newTotalAmount = 0;
   const items = newData.selling_dish_items || [];
+
   for (const item of items) {
-    // --- ИЗМЕНЕНИЕ: Логика автозаполнения цены и ед. измерения ---
+    // 1. Автозаполнение цены и ед. измерения
     if (typeof item.dish === 'object' && item.dish) {
       const selectedDish = item.dish as { measurement_unit?: number | null, id: number, price: number };
       const currentUnit = item.measurement_unit;
       const currentUnitId = (typeof currentUnit === 'object' && currentUnit) ? currentUnit.id : currentUnit;
 
-      // 1. Подставляем цену продажи из блюда
       if (selectedDish.price && item.sale_price !== selectedDish.price) {
         item.sale_price = selectedDish.price;
       }
-
-      // 2. Подставляем единицу измерения
       if (selectedDish.measurement_unit && selectedDish.measurement_unit !== currentUnitId) {
         if (measurementUnitsStore.measurementUnits.length === 0) {
           await measurementUnitsStore.fetchRecords(1);
         }
-        const defaultUnit = measurementUnitsStore.measurementUnits.find(
-            unit => unit.id === selectedDish.measurement_unit
-        );
-        if (defaultUnit) {
-          item.measurement_unit = { ...defaultUnit };
-        }
+        const defaultUnit = measurementUnitsStore.measurementUnits.find(u => u.id === selectedDish.measurement_unit);
+        if (defaultUnit) item.measurement_unit = { ...defaultUnit };
       }
     }
-    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
-    // Пересчитываем сумму строки ПОСЛЕ всех возможных изменений
+    // 2. Пересчет суммы строки
     const quantity = Number(item.quantity) || 0;
     const salePrice = Number(item.sale_price) || 0;
     const newAmount = parseFloat((quantity * salePrice).toFixed(2));
     if (item.amount !== newAmount) {
       item.amount = newAmount;
     }
+
+    // 3. Суммируем для итоговой суммы
+    newTotalAmount += item.amount;
   }
+
+  // 4. Обновляем итоговую сумму в formData
+  const finalTotalAmount = parseFloat(newTotalAmount.toFixed(2));
+  if (newData.amount !== finalTotalAmount) {
+    formData.value.amount = finalTotalAmount;
+  }
+
 }, { deep: true });
+// --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
 watch(() => props.initialData, (data) => {
   if (data) {
@@ -222,14 +237,10 @@ const formatNumberForTitle = (num: number) => {
   }).format(num || 0);
 };
 
-
 const formTitle = computed(() => {
   if (!props.initialData) return t('sellingDish.creating');
-
-
   const formattedDate = formatDateForTitle(formData.value.date || '');
-  const formattedAmount = formatNumberForTitle(totalAmount.value);
-
+  const formattedAmount = formatNumberForTitle(formData.value.amount || 0); // Используем formData.amount
   if (locale.value === 'kz') {
     return `${formattedDate} жылғы ${formattedAmount} тг. сомасына тағам сату`;
   }
@@ -265,8 +276,7 @@ function submit() {
     dish: typeof item.dish === 'object' && item.dish ? item.dish.id : item.dish,
     measurement_unit: typeof item.measurement_unit === 'object' && item.measurement_unit ? item.measurement_unit.id : item.measurement_unit,
   }));
-  payload.amount = totalAmount.value;
-  payload.paid_amount = totalAmount.value;
+  // ИЗМЕНЕНИЕ: paid_amount теперь берется из formData, а не рассчитывается
   emit('submit', payload);
 }
 
