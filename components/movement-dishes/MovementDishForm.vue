@@ -60,7 +60,7 @@
           />
         </td>
         <td class="p-1"><SearchableSelect v-model="item.measurement_unit" :store="measurementUnitsStore" results-key="measurementUnits" :search-field="`name_${locale}`" :display-field="`name_${locale}`" :placeholder="$t('measurementUnit.searchPlaceholder')" :disabled="isViewMode" /></td>
-        <td class="p-1"><input :ref="el => { if (el) quantityRefs[index] = el }" type="number" step="0.01" @keydown.enter.prevent="addRow" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border border-gray-400 rounded-md shadow-sm disabled:bg-gray-100" /></td>
+        <td class="p-1"><input :ref="el => { if (el) quantityRefs[index] = el }" type="number" step="1" @keydown.enter.prevent="addRow" v-model.number="item.quantity" :disabled="isViewMode" class="w-full p-2 border border-gray-400 rounded-md shadow-sm disabled:bg-gray-100" /></td>
       </template>
     </DocumentItemsTable>
 

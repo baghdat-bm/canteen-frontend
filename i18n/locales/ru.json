@@ -184,7 +184,8 @@
     "balance": "Баланс",
     "phone": "Телефон",
     "birthday": "День рождения",
-    "personal_account": "Личный счет"
+    "personal_account": "Личный счет",
+    "select": "Выберите учащегося"
   },
   "incomingInvoice": {
     "itemList": "Приходные накладные",
@@ -202,5 +203,11 @@
     "creating": "Создание перемещения на склад",
     "warehouse_from": "Со склада",
     "warehouse_to": "На склад"
+  },
+  "sellingDish": {
+    "itemList": "Продажи блюд",
+    "refName": "Продажа блюд",
+    "creating": "Создание продажи блюд",
+    "payment_method": "Способ оплаты"
   }
 }

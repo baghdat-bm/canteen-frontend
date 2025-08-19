@@ -150,7 +150,7 @@ import {
   Files, FilePlus2,
   Home, BarChart3, LogOut, CookingPot, FolderKanban, ChevronDown, 
   Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse, Salad,
-  FileMinus2, FileDiff, Baby
+  FileMinus2, FileDiff, Baby, ShoppingBag
 } from 'lucide-vue-next';
 import { useUiStore } from '~/stores/ui';
 import { useAuthStore } from '~/stores/auth';
@@ -168,6 +168,7 @@ const showLogoutModal = ref(false);
 
 // --- Ссылки для подменю "Документы" с указанием иконок ---
 const docLinks = ref([
+  { name: 'selling-dishes', path: '/selling-dishes', labelKey: 'sellingDish.itemList', icon: ShoppingBag },
   { name: 'incoming-invoices', path: '/incoming-invoices', labelKey: 'incomingInvoice.itemList', icon: FilePlus2 },
   { name: 'write-offs', path: '/write-offs', labelKey: 'writeOff.itemList', icon: FileMinus2 },
   { name: 'movement-dishes', path: '/movement-dishes', labelKey: 'movementDish.itemList', icon: FileDiff },

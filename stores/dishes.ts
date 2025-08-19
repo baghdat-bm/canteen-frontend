@@ -12,6 +12,7 @@ export interface Dish {
     category: number;
     logo: string;
     barcode: string;
+    price: number;
     measurement_unit?: number | null;
 }
 

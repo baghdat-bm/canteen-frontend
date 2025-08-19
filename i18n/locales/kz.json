@@ -184,7 +184,8 @@
     "balance": "Баланс",
     "phone": "Телефон",
     "birthday": "Туған күні",
-    "personal_account": "Жеке шоты"
+    "personal_account": "Жеке шоты",
+    "select": "Оқушыны таңдаңыз"
   },
   "incomingInvoice": {
     "itemList": "Кіріс жүкқұжаттары",
@@ -202,5 +203,11 @@
     "creating": "Қоймаға ауыстыруды жасау",
     "warehouse_from": "Қоймадан",
     "warehouse_to": "Қоймаға"
+  },
+  "sellingDish": {
+    "itemList": "Тағам сату",
+    "refName": "Тағам сату",
+    "creating": "Тағам сатуды жасау",
+    "payment_method": "Төлем әдісі"
   }
 }

@@ -4,6 +4,7 @@ export interface SupplierLite { id: number; name: string; bin?: string; }
 export interface DishLite { id: number; name_kz?: string; name_ru?: string; measurement_unit?: number | null; }
 export interface MeasurementUnitLite { id: number; name_kz?: string; name_ru?: string; }
 export interface WritingOffReasonLite { id: number; name_kz?: string; name_ru?: string; }
+export interface StudentLite { id: number; full_name: string; iin?: string; }
 
 /**
  * Универсальный интерфейс для элемента в табличной части любого документа.
@@ -200,9 +201,42 @@ export interface SellingDishDetail extends DocumentDetail {
 // Детальная информация о Продажа блюд (для формы, с объектами)
 export interface SellingDishDetailRich extends DocumentDetail {
     warehouse: WarehouseLite | number;
-    student: SupplierLite | number;
-    shipping_cost: number;
-    paid_amount: number;
+    student: StudentLite | number;
     amount: number;
-    invoice_dish_items: SellingDishItem[];
+    paid_amount: number;
+    payment_date: string;
+    payment_method: string;
+    refund_amount: number;
+    process_id: string;
+    last_status: string;
+    error_text: string;
+    transaction_id: string;
+    refund_transaction_id: string;
+    currency: string;
+    card_mask: string;
+    terminal: string;
+    response_data: string;
+
+    selling_dish_items: SellingDishItem[];
 }
+
+// Элемент в списке Продаж блюд
+export interface SellingDishList extends DocumentInList {
+    warehouse: WarehouseLite;
+    student: StudentLite;
+    amount: number;
+    paid_amount: number;
+    refund_amount: number;
+}
+
+// Payload для создания/обновления Продаж блюд
+export type SellingDishPayload = Omit< SellingDishDetail, 'id' | 'author'> & {
+    selling_dish_items: Array<{
+        id?: number;
+        dish: number;
+        measurement_unit: number;
+        quantity: number;
+        sale_price: number;
+        amount: number;
+    }>;
+};
