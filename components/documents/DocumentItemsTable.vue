@@ -12,7 +12,7 @@
         </thead>
         <tbody>
         <!-- Сообщение для пустой таблицы -->
-        <tr v-if="items.length === 0">
+        <tr v-if="!items || items.length === 0">
           <td colspan="10" class="text-center text-gray-500 py-4 italic">
             {{ $t('messages.pressAddRowToAddNewDish') }}
           </td>
