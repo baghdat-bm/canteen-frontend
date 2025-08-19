@@ -150,7 +150,7 @@ import {
   Files, FilePlus2,
   Home, BarChart3, LogOut, CookingPot, FolderKanban, ChevronDown, 
   Building2, Ruler, BookMinus, UtensilsCrossed, Warehouse, Salad,
-  FileMinus2, FileDiff
+  FileMinus2, FileDiff, Baby
 } from 'lucide-vue-next';
 import { useUiStore } from '~/stores/ui';
 import { useAuthStore } from '~/stores/auth';
@@ -189,6 +189,7 @@ const refLinks = ref([
   { name: 'warehouses', path: '/warehouses', labelKey: 'warehouse.itemList', icon: Warehouse },
   { name: 'dishes-categories', path: '/dishes-categories', labelKey: 'dishCategory.itemList', icon: UtensilsCrossed },
   { name: 'the-dishes', path: '/the-dishes', labelKey: 'dish.itemList', icon: Salad },
+  { name: 'students', path: '/students', labelKey: 'student.itemList', icon: Baby },
 ]);
 
 const refRoutes = refLinks.value.map(l => l.name);

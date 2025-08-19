@@ -3,15 +3,17 @@ import {computed, ref} from 'vue'
 import {api, type PaginatedResponse} from '~/utils/apiClient'
 import {useUiStore} from './ui.js';
 
-// Определяем интерфейс для нашего контрагента
+// Определяем интерфейс для учащегося
 export interface Student {
     id: number;
-    name: string;
-    bin?: string;
-    bik?: string;
-    bank?: string;
-    corr_account?: string;
-    check_account?: string;
+    full_name: string;
+    iin?: string;
+    phone?: string;
+    birthday?: string;
+    class_number?: string;
+    personal_account?: string;
+    photo: string;
+    balance: number;
 }
 
 export const useStudentsStore = defineStore('students', () => {
@@ -25,8 +27,8 @@ export const useStudentsStore = defineStore('students', () => {
     const pageSize = ref(30); // 30 записей на страницу
     const currentPage = ref(1);
     const searchQuery = ref({
-        name: '',
-        bin: '',
+        full_name: '',
+        iin: '',
         id: ''
     });
 
@@ -47,7 +49,7 @@ export const useStudentsStore = defineStore('students', () => {
         isLoading.value = false;
         totalRecords.value = 0;
         currentPage.value = 1;
-        searchQuery.value = { name: '', bin: '', id: '' };
+        searchQuery.value = { full_name: '', iin: '', id: '' };
     }
 
     /**
@@ -64,11 +66,11 @@ export const useStudentsStore = defineStore('students', () => {
             const params = new URLSearchParams();
 
             // Добавляем параметры поиска, если они не пустые
-            if (searchQuery.value.name) {
-                params.append('name', searchQuery.value.name);
+            if (searchQuery.value.full_name) {
+                params.append('full_name', searchQuery.value.full_name);
             }
-            if (searchQuery.value.bin) {
-                params.append('bin', searchQuery.value.bin);
+            if (searchQuery.value.iin) {
+                params.append('iin', searchQuery.value.iin);
             }
             if (searchQuery.value.id) {
                 params.append('id', searchQuery.value.id);
@@ -79,7 +81,6 @@ export const useStudentsStore = defineStore('students', () => {
                 params.append('page_size', pageSize.value.toString());
             }
 
-            // console.log(`contractors request params: ${params}`);
             const urlStr = `/students/?${params.toString()}`;
             // console.log(`urlStr: ${urlStr}`);
             const response = await api.refs<PaginatedResponse<Student>>(urlStr, { method: 'get' });
@@ -122,102 +123,19 @@ export const useStudentsStore = defineStore('students', () => {
         }
     }
 
-    /**
-     * Создает нового учащегося
-     */
-    async function createRecord(data: Omit<Student, 'id'>) {
-        const uiStore = useUiStore(); 
-        try {
-            const newStudent = await api.refs<Student>('/students/', {
-                method: 'post',
-                body: data,
-            });
-            // Добавляем нового контрагента в начало списка для мгновенного отклика
-            students.value.unshift(newStudent);
-            // или можно сбросить кэш и перезапросить весь список:
-            // lastFetched.value = null;
-            // await fetchContractors();
-        } catch (error) {            
-            const errText = "Ошибка при создании учащегося";
-            console.error(errText, error);
-            uiStore.showNotification({
-                message: errText,
-                type: 'error',
-                duration: 7000
-            });
-        }
-    }
-
-    /**
-     * Обновляет существующего контрагента
-     */
-    async function updateRecord(id: number, data: Partial<Omit<Student, 'id'>>) {
-        const uiStore = useUiStore(); 
-        try {
-            const updatedStudent = await api.refs<Student>(`/students/${id}/`, {
-                method: 'patch',
-                body: data,
-            });
-            // Находим и обновляем контрагента в нашем локальном списке
-            const index = students.value.findIndex(c => c.id === id);
-            if (index !== -1) {
-                students.value[index] = updatedStudent;
-            }
-        } catch (error) {            
-            const errText = `Ошибка при обновлении учащегося ${id}`;
-            console.error(errText, error);
-            uiStore.showNotification({
-                message: errText,
-                type: 'error',
-                duration: 7000
-            });
-        }
-    }
-
-    /**
-     * Удаляет контрагента
-     */
-    async function deleteRecord(id: number) {
-
-        const uiStore = useUiStore();        
-        const nuxtApp = useNuxtApp();        
-        const { t } = nuxtApp.$i18n;
-
-        try {
-            await api.refs(`/students/${id}/`, { method: 'delete' });
-            // Удаляем контрагента из локального списка для мгновенного отклика
-            students.value = students.value.filter(c => c.id !== id);
-            uiStore.showNotification({
-                message: t('student.itemDeleted'),
-                type: 'success',
-            });
-            return true;
-        } catch (error) {
-            console.error(`Ошибка при удалении контрагента ${id}:`, error);
-            uiStore.showNotification({
-                message: t('contractor.errorOnDelete'),
-                type: 'error',
-                duration: 7000
-            });
-            return false;
-        }
-    }
 
     return {
-        contractors: students,
-        contractor: student,
+        students,
+        student,
         isLoading,
         totalRecords,
         pageSize,
         currentPage,
         totalPages,
         searchQuery,
-        getContractorById: getStudentById,
+        getStudentById,
         fetchRecords,
         fetchRecord,
-        createRecord,
-        updateRecord,
-        deleteRecord,
         reset,
     };
 });

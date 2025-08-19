@@ -68,8 +68,10 @@
     "invalidBin": "Не корректный БИН"
   },
   "search": {
+    "byFullName": "Поиск по ФИО",
     "byName": "Поиск по названию",
-    "byBin": "Поиск по БИН-у",
+    "byIin": "Поиск по ИИН",
+    "byBin": "Поиск по БИН",
     "byId": "Поиск по ID",
     "find": "Найти",
     "reset": "Очистить",
@@ -171,6 +173,18 @@
     "noData": "В этой категории нет блюд.",
     "confirmDelete": "Вы уверены, что хотите удалить это блюдо ?",
     "searchPlaceholder": "Поиск блюда"
+  },
+  "student": {
+    "itemList": "Учащиеся",
+    "refName": "Учащийся",
+    "photo": "Фото",
+    "fullName": "ФИО",
+    "iin": "ИИН",
+    "class_number": "Класс",
+    "balance": "Баланс",
+    "phone": "Телефон",
+    "birthday": "День рождения",
+    "personal_account": "Личный счет"
   },
   "incomingInvoice": {
     "itemList": "Приходные накладные",

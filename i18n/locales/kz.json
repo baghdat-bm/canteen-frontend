@@ -68,8 +68,10 @@
     "invalidBin": "Дұрыс емес БСН"
   },
   "search": {
+    "byFullName": "Аты жөні бойынша іздеу",
     "byName": "Атымен іздеу",
-    "byBin": "БСН-ымен іздеу",
+    "byIin": "ЖСН-мен іздеу",
+    "byBin": "БСН-мен іздеу",
     "byId": "ID-мен іздеу",
     "find": "Іздеу",
     "reset": "Өшіру",
@@ -171,6 +173,18 @@
     "noData": "Бұл санатта тағамдар жоқ.",
     "confirmDelete": "Сіз бұл тағамды жойғыңыз келетініне сенімдісіз бе ?",
     "searchPlaceholder": "Тағам іздеу"
+  },
+  "student": {
+    "itemList": "Оқушылар",
+    "refName": "Оқушы",
+    "photo": "Фото",
+    "fullName": "Аты-жөні",
+    "iin": "ЖСН",
+    "class_number": "Сыныбы",
+    "balance": "Баланс",
+    "phone": "Телефон",
+    "birthday": "Туған күні",
+    "personal_account": "Жеке шоты"
   },
   "incomingInvoice": {
     "itemList": "Кіріс жүкқұжаттары",
