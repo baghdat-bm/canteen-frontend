@@ -186,7 +186,7 @@ const isDocsOpen = ref(
 const refLinks = ref([
   { name: 'contractors', path: '/contractors', labelKey: 'contractors', icon: Building2 },
   { name: 'measurement-units', path: '/measurement-units', labelKey: 'refs.measurement_units', icon: Ruler },
-  { name: 'write-offs-reasons', path: '/writing-off-reasons', labelKey: 'refs.writingOffReasons', icon: BookMinus },
+  { name: 'writing-off-reasons', path: '/writing-off-reasons', labelKey: 'refs.writingOffReasons', icon: BookMinus },
   { name: 'warehouses', path: '/warehouses', labelKey: 'warehouse.itemList', icon: Warehouse },
   { name: 'dishes-categories', path: '/dishes-categories', labelKey: 'dishCategory.itemList', icon: UtensilsCrossed },
   { name: 'the-dishes', path: '/the-dishes', labelKey: 'dish.itemList', icon: Salad },

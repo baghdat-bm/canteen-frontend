@@ -70,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         try {
             const tokens = await $fetch<TokenResponse>(`/token/`, {
-                baseURL: resolveBaseURL('refs'),
+                baseURL: resolveBaseURL('common'),
                 method: 'POST',
                 body: {
                     username: credentials.login,
@@ -90,7 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function fetchUser(login: string) {
         try {
-            const profile = await api.refs<UserProfile>('/user-data/', { method: 'get' });
+            const profile = await api.common<UserProfile>('/current-user/', { method: 'get' });
             
             profile.login = login;
 
@@ -110,7 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             console.log('Обновление токена...');
             const response = await $fetch<RefreshResponse>(`/token/refresh/`, {
-                baseURL: resolveBaseURL('refs'),
+                baseURL: resolveBaseURL('common'),
                 method: 'POST',
                 body: {
                     refresh: refreshToken.value,

@@ -81,7 +81,7 @@
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ formatDate(writingOff.date) }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">{{ writingOff.warehouse.name }}</td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">
-            {{ locale === 'kz' ? writingOff.writing_off_reason.name_kz : writingOff.writing_off_reason.name_ru }}
+            {{ writingOff.writing_off_reason ? (locale === 'kz' ? writingOff.writing_off_reason.name_kz : writingOff.writing_off_reason.name_ru) : '' }}
           </td>
           <td class="px-5 py-5 border-b border-gray-200 text-sm">
             <SquareCheckBig v-if="writingOff.accepted" class="w-5 h-5 text-green-600" />

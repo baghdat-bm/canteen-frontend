@@ -10,12 +10,13 @@ export interface PaginatedResponse<T> {
     results: T[];
 }
 
-type ApiBaseKey = 'refs' | 'docs' | 'reports';
+type ApiBaseKey = 'common' | 'refs' | 'docs' | 'reports';
 
 export function resolveBaseURL(key: ApiBaseKey) {
     const config = useRuntimeConfig();
     const host = config.public.apiHost;
     const map: Record<ApiBaseKey, string> = {
+        common: `${host}${config.public.apiPathCommon}`,
         refs: `${host}${config.public.apiPathRefs}`,
         docs: `${host}${config.public.apiPathDocs}`,
         reports: `${host}${config.public.apiPathReports}`,
@@ -72,6 +73,8 @@ async function apiClient<T = any>(
 }
 
 export const api = {
+    common: <T = any>(url: NitroFetchRequest, options?: NitroFetchOptions<NitroFetchRequest>) =>
+        apiClient<T>('common', url, options),
     refs: <T = any>(url: NitroFetchRequest, options?: NitroFetchOptions<NitroFetchRequest>) =>
         apiClient<T>('refs', url, options),
     docs:   <T = any>(url: NitroFetchRequest, options?: NitroFetchOptions<NitroFetchRequest>) =>

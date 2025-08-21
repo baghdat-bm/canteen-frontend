@@ -60,9 +60,10 @@ export default defineNuxtConfig({
         // общий хост (dev/prod/stage)
         apiHost: process.env.NUXT_PUBLIC_API_HOST || 'http://localhost:8000',
         // префиксы путей
-        apiPathRefs: process.env.NUXT_PUBLIC_REFS_API_PATH || '/ru/school-api',
-        apiPathDocs: process.env.NUXT_PUBLIC_DOCS_API_PATH || '/ru/food-api',
-        apiPathReports: process.env.NUXT_PUBLIC_REPORTS_API_PATH || '/ru/reports-api',
+        apiPathCommon: process.env.NUXT_PUBLIC_COMMON_API_PATH || '/api',
+        apiPathRefs: process.env.NUXT_PUBLIC_REFS_API_PATH || '/reference-api',
+        apiPathDocs: process.env.NUXT_PUBLIC_DOCS_API_PATH || '/document-api',
+        apiPathReports: process.env.NUXT_PUBLIC_REPORTS_API_PATH || '/reports-api',
     }
   },
 })
